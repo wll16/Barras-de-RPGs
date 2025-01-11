@@ -280,7 +280,7 @@
 
       bar.dataset.current = current;
       const barFill = bar.querySelector('.bar-fill');
-      barFill.style.width = (current / max) * 20 + '%';
+      barFill.style.width = (current / max) * 100 + '%';
       barFill.textContent = current + '/' + max;
 
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
