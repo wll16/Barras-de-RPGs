@@ -5,24 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barras de Status e Login</title>
   <style>
-    /* Estilos das barras de status */
+    /* Estilos gerais */
     body {
       font-family: Arial, sans-serif;
       background-color: #1e1e1e;
       color: white;
       text-align: center;
     }
+
+    /* Container das barras de status */
     .container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
     }
-    .bar-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+
     .bar {
       display: flex;
       flex-direction: column;
@@ -32,6 +30,7 @@
       padding: 5px;
       background-color: #2e2e2e;
     }
+
     .bar-inner {
       width: 100%;
       height: 20px;
@@ -40,6 +39,7 @@
       overflow: hidden;
       position: relative;
     }
+
     .bar-fill {
       height: 100%;
       text-align: center;
@@ -48,6 +48,8 @@
       font-weight: bold;
       transition: width 0.3s;
     }
+
+    /* Cores das barras */
     .vida { background-color: red; }
     .sanidade { background-color: blue; }
     .fe { background-color: gold; }
@@ -57,6 +59,7 @@
     .determinacao { background-color: #003366; }
     .mana { background-color: #1e90ff; }
 
+    /* Estilo dos botões */
     button {
       padding: 5px 10px;
       border: none;
@@ -66,26 +69,31 @@
       background-color: #4caf50;
       color: white;
     }
+
     button.remove {
       background-color: #f44336;
     }
-    input[name="bar-name"] {
+
+    /* Formulário de login e registro */
+    #login, #register {
+      margin-top: 50px;
+    }
+
+    #login h2, #register h2 {
+      color: white;
+    }
+
+    input {
+      padding: 5px;
+      margin: 5px;
+    }
+
+    /* Inputs e selects */
+    input[name="bar-name"], select {
       margin-bottom: 5px;
       width: 90%;
       text-align: center;
       font-size: 14px;
-    }
-
-    /* Estilos do formulário de login */
-    #login, #register {
-      margin-top: 50px;
-    }
-    #login h2, #register h2 {
-      color: white;
-    }
-    input {
-      padding: 5px;
-      margin: 5px;
     }
 
   </style>
@@ -97,14 +105,14 @@
   <div>
     <label for="bar-type">Tipo de Barra:</label>
     <select id="bar-type">
-      <option value="vida" style="color:red;">Vida</option>
-      <option value="sanidade" style="color:blue;">Sanidade</option>
-      <option value="fe" style="color:gold;">Fé</option>
-      <option value="esforco" style="color:yellow;">Esforço</option>
-      <option value="fome" style="color:orange;">Fome</option>
-      <option value="sede" style="color:lightblue;">Sede</option>
-      <option value="determinacao" style="color:darkblue;">Determinação</option>
-      <option value="mana" style="color:deepskyblue;">Mana</option>
+      <option value="vida">Vida</option>
+      <option value="sanidade">Sanidade</option>
+      <option value="fe">Fé</option>
+      <option value="esforco">Esforço</option>
+      <option value="fome">Fome</option>
+      <option value="sede">Sede</option>
+      <option value="determinacao">Determinação</option>
+      <option value="mana">Mana</option>
     </select>
     <label for="bar-name">Nome:</label>
     <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
@@ -162,7 +170,7 @@
       try {
         await createUserWithEmailAndPassword(auth, email, password);
         alert("Usuário registrado com sucesso!");
-        showLoginForm(); // Após o registro, volta para o formulário de login
+        showLoginForm();
       } catch (error) {
         alert("Erro ao registrar: " + error.message);
       }
@@ -175,7 +183,6 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         alert("Login realizado com sucesso!");
-        // Aqui, você pode redirecionar o usuário ou fazer outra ação após o login.
       } catch (error) {
         alert("Erro ao fazer login: " + error.message);
       }
@@ -248,47 +255,48 @@
 
     function removeBar(button) {
       const bar = button.closest('.bar');
+      const type = bar.dataset.type;
+      const name = bar.querySelector('input[name="bar-name"]').value;
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const filteredBars = savedBars.filter(barData => barData.type !== type || barData.name !== name);
+      localStorage.setItem('bars', JSON.stringify(filteredBars));
+
       bar.remove();
+    }
+
+    function adjustBar(button, amount) {
+      const bar = button.closest('.bar');
+      const type = bar.dataset.type;
+      const name = bar.querySelector('input[name="bar-name"]').value;
+      const barFill = bar.querySelector('.bar-fill');
+      const current = parseInt(bar.dataset.current);
+      const max = parseInt(bar.dataset.max);
+
+      let newCurrent = current + amount;
+      newCurrent = Math.min(Math.max(newCurrent, 0), max);
+
+      bar.dataset.current = newCurrent;
+      barFill.style.width = (newCurrent / max) * 100 + '%';
+      barFill.innerText = `${newCurrent}/${max}`;
 
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = savedBars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
-      if (index !== -1) {
-        savedBars.splice(index, 1);
+      const barIndex = savedBars.findIndex(barData => barData.type === type && barData.name === name);
+      if (barIndex !== -1) {
+        savedBars[barIndex].initial = newCurrent;
+        localStorage.setItem('bars', JSON.stringify(savedBars));
       }
-      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
 
     function updateBarName(input) {
       const bar = input.closest('.bar');
+      const type = bar.dataset.type;
       const name = input.value;
-      bar.querySelector('input[name="bar-name"]').value = name;
-
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = savedBars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
-      if (index !== -1) {
-        savedBars[index].name = name;
+      const barIndex = savedBars.findIndex(barData => barData.type === type);
+      if (barIndex !== -1) {
+        savedBars[barIndex].name = name;
+        localStorage.setItem('bars', JSON.stringify(savedBars));
       }
-      localStorage.setItem('bars', JSON.stringify(savedBars));
-    }
-
-    function adjustBar(button, value) {
-      const bar = button.closest('.bar');
-      let current = parseInt(bar.dataset.current);
-      const max = parseInt(bar.dataset.max);
-
-      current = Math.max(0, Math.min(max, current + value));
-
-      bar.dataset.current = current;
-      const barFill = bar.querySelector('.bar-fill');
-      barFill.style.width = (current / max) * 100 + '%';
-      barFill.textContent = current + '/' + max;
-
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = savedBars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
-      if (index !== -1) {
-        savedBars[index].initial = current;
-      }
-      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
   </script>
 </body>
