@@ -273,10 +273,12 @@
       const bar = button.closest('.bar');
       const current = parseInt(bar.dataset.current);
       const max = parseInt(bar.dataset.max);
+      const initial = parseInt(bar.dataset.initial);
       let newValue = current + value;
 
       if (newValue < 0) newValue = 0;
       if (newValue > max) newValue = max;
+      if (newValue < initial) newValue = initial;  // Impede de ir abaixo do valor inicial
 
       bar.dataset.current = newValue;
       bar.querySelector('.bar-fill').style.width = (newValue / max) * 100 + '%';
