@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barras de Status - Personalizadas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e1e;
+      color: white;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .bar-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 2px solid white;
+      border-radius: 5px;
+      padding: 5px;
+      background-color: #2e2e2e;
+    }
+    .bar-inner {
+      width: 100%;
+      height: 20px;
+      border-radius: 5px;
+      background-color: grey;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      text-align: center;
+      color: black;
+      font-size: 12px;
+      font-weight: bold;
+      transition: width 0.3s;
+    }
+    .vida { background-color: red; }
+    .sanidade { background-color: blue; }
+    .fe { background-color: gold; }
+    .esforco { background-color: yellow; }
+    .fome { background-color: #ff7f00; }
+    .sede { background-color: #00bfff; }
+    .determinacao { background-color: #003366; } /* Determinação com azul escuro */
+    .mana { background-color: #1e90ff; } /* Mana com azul diferenciado */
+
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      background-color: #4caf50;
+      color: white;
+    }
+    button.remove {
+      background-color: #f44336;
+    }
+    input[name="bar-name"] {
+      margin-bottom: 5px;
+      width: 90%;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Barras de Status - RPG Personalizadas</h1>
+
+  <!-- Configuração para adicionar barras -->
+  <div>
+    <label for="bar-type">Tipo de Barra:</label>
+    <select id="bar-type">
+      <option value="vida" style="color:red;">Vida</option>
+      <option value="sanidade" style="color:blue;">Sanidade</option>
+      <option value="fe" style="color:gold;">Fé</option>
+      <option value="esforco" style="color:yellow;">Esforço</option>
+      <option value="fome" style="color:orange;">Fome</option>
+      <option value="sede" style="color:lightblue;">Sede</option>
+      <option value="determinacao" style="color:darkblue;">Determinação</option> <!-- Barra de Determinação com azul escuro -->
+      <option value="mana" style="color:deepskyblue;">Mana</option> <!-- Barra de Mana com azul diferenciado -->
+    </select>
+    <label for="bar-name">Nome:</label>
+    <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
+    <label for="initial-value">Inicial:</label>
+    <input type="number" id="initial-value" value="40" min="0">
+    <label for="max-value">Máximo:</label>
+    <input type="number" id="max-value" value="100" min="1">
+    <button onclick="addBar()">Adicionar Barra</button>
+  </div>
+
+  <!-- Área onde as barras serão exibidas -->
+  <div class="container" id="bar-container">
+  </div>
+
+  <script>
+    const container = document.getElementById('bar-container');
+
+    // Carregar as barras salvas ao carregar a página
+    window.onload = function() {
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
+        container.appendChild(bar);
+      });
+    };
+
+    // Função para criar uma barra
+    function createBar(type, name, initial, max) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.dataset.max = max;
+      bar.dataset.type = type;
+      bar.innerHTML = `
+        <input type="text" name="bar-name" value="${name}" onchange="updateBarName(this)" />
+        <div class="bar-inner">
+          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
+        </div>
+        <div>
+          <button onclick="adjustBar(this, -5)">-5</button>
+          <button onclick="adjustBar(this, -1)">-1</button>
+          <button onclick="adjustBar(this, 1)">+1</button>
+          <button onclick="adjustBar(this, 5)">+5</button>
+        </div>
+        <button class="remove" onclick="removeBar(this)">Remover</button>
+      `;
+      bar.dataset.current = initial;
+      return bar;
+    }
+
+    // Adicionar uma nova barra
+    function addBar() {
+      const type = document.getElementById('bar-type').value;
+      const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
+      const initialValue = parseInt(document.getElementById('initial-value').value);
+      const maxValue = parseInt(document.getElementById('max-value').value);
+
+      if (initialValue < 0 || maxValue < 1) {
+        alert("Os valores devem ser válidos (inicial >= 0, máximo >= 1).");
+        return;
+      }
+
+      const bar = createBar(type, name, initialValue, maxValue);
+      container.appendChild(bar);
+
+      // Salvar as barras no localStorage
+      saveBars();
+
+      // Limpa o campo de nome após adicionar
+      document.getElementById('bar-name').value = '';
+    }
+
+    // Ajustar o valor da barra
+    function adjustBar(button, value) {
+      const bar = button.closest('.bar');
+      const barFill = bar.querySelector('.bar-fill');
+      const maxValue = parseInt(bar.dataset.max);
+      let currentValue = parseInt(bar.dataset.current);
+
+      // Permite exceder para cima, mas não permite ir abaixo de zero
+      currentValue = Math.max(0, currentValue + value);
+      bar.dataset.current = currentValue;
+
+      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
+      barFill.style.width = `${widthPercentage}%`;
+
+      // Atualiza o texto da barra
+      barFill.textContent = `${currentValue}/${maxValue}`;
+
+      // Salvar as barras no localStorage
+      saveBars();
+    }
+
+    // Atualizar nome da barra
+    function updateBarName(input) {
+      const newName = input.value.trim();
+      if (!newName) {
+        alert("O nome não pode estar vazio!");
+        input.value = input.defaultValue;
+      } else {
+        input.defaultValue = newName;
+      }
+
+      // Salvar as barras no localStorage
+      saveBars();
+    }
+
+    // Remover uma barra
+    function removeBar(button) {
+      const bar = button.parentNode;
+      container.removeChild(bar);
+
+      // Salvar as barras no localStorage
+      saveBars();
+    }
+
+    // Salvar as barras no localStorage
+    function saveBars() {
+      const bars = [];
+      const allBars = document.querySelectorAll('.bar');
+      allBars.forEach(bar => {
+        const type = bar.dataset.type;
+        const name = bar.querySelector('input[name="bar-name"]').value;
+        const current = parseInt(bar.dataset.current);
+        const max = parseInt(bar.dataset.max);
+        bars.push({ type, name, initial: current, max });
+      });
+
+      localStorage.setItem('bars', JSON.stringify(bars));
+    }
+  </script>
+</body>
+</html>
