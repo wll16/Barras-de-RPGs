@@ -290,12 +290,16 @@
     function updateBarName(input) {
       const bar = input.closest('.bar');
       const type = bar.dataset.type;
-      const name = input.value;
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const barIndex = savedBars.findIndex(barData => barData.type === type);
-      if (barIndex !== -1) {
-        savedBars[barIndex].name = name;
-        localStorage.setItem('bars', JSON.stringify(savedBars));
+      const oldName = bar.querySelector('input[name="bar-name"]').value;
+
+      const newName = input.value;
+      if (newName) {
+        const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+        const barIndex = savedBars.findIndex(barData => barData.type === type && barData.name === oldName);
+        if (barIndex !== -1) {
+          savedBars[barIndex].name = newName;
+          localStorage.setItem('bars', JSON.stringify(savedBars));
+        }
       }
     }
   </script>
