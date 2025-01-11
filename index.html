@@ -54,8 +54,8 @@
     .esforco { background-color: yellow; }
     .fome { background-color: #ff7f00; }
     .sede { background-color: #00bfff; }
-    .determinacao { background-color: #003366; } /* Determinação com azul escuro */
-    .mana { background-color: #1e90ff; } /* Mana com azul diferenciado */
+    .determinacao { background-color: #003366; }
+    .mana { background-color: #1e90ff; }
 
     button {
       padding: 5px 10px;
@@ -77,10 +77,10 @@
     }
 
     /* Estilos do formulário de login */
-    #login {
+    #login, #register {
       margin-top: 50px;
     }
-    #login h2 {
+    #login h2, #register h2 {
       color: white;
     }
     input {
@@ -91,7 +91,7 @@
 </head>
 <body>
   <h1>Barras de Status - RPG Personalizadas</h1>
-  
+
   <!-- Configuração para adicionar barras -->
   <div>
     <label for="bar-type">Tipo de Barra:</label>
@@ -125,7 +125,16 @@
     <label>Email: <input type="email" id="email" /></label><br />
     <label>Senha: <input type="password" id="password" /></label><br />
     <button onclick="login()">Entrar</button>
+    <button onclick="showRegisterForm()">Registrar</button>
+  </div>
+
+  <!-- Formulário de Registro -->
+  <div id="register" style="display: none;">
+    <h2>Registrar</h2>
+    <label>Email: <input type="email" id="register-email" /></label><br />
+    <label>Senha: <input type="password" id="register-password" /></label><br />
     <button onclick="register()">Registrar</button>
+    <button onclick="showLoginForm()">Voltar</button>
   </div>
 
   <!-- Script Firebase -->
@@ -146,12 +155,13 @@
     const auth = getAuth();
 
     async function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById("register-email").value;
+      const password = document.getElementById("register-password").value;
 
       try {
         await createUserWithEmailAndPassword(auth, email, password);
         alert("Usuário registrado com sucesso!");
+        showLoginForm(); // Após o registro, volta para o formulário de login
       } catch (error) {
         alert("Erro ao registrar: " + error.message);
       }
@@ -164,9 +174,21 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         alert("Login realizado com sucesso!");
+        // Aqui, você pode redirecionar o usuário ou fazer outra ação após o login.
       } catch (error) {
         alert("Erro ao fazer login: " + error.message);
       }
+    }
+
+    // Funções para alternar entre login e registro
+    function showLoginForm() {
+      document.getElementById('login').style.display = 'block';
+      document.getElementById('register').style.display = 'none';
+    }
+
+    function showRegisterForm() {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('register').style.display = 'block';
     }
   </script>
 
@@ -209,60 +231,61 @@
       const initialValue = parseInt(document.getElementById('initial-value').value);
       const maxValue = parseInt(document.getElementById('max-value').value);
 
-      if (initialValue < 0 || maxValue < 1) {
-        alert("Os valores devem ser válidos (inicial >= 0, máximo >= 1).");
+      if (initialValue < 0 || maxValue < 1 || initialValue > maxValue) {
+        alert('Valores inválidos para a barra!');
         return;
       }
 
+      const barData = { type, name, initial: initialValue, max: maxValue };
       const bar = createBar(type, name, initialValue, maxValue);
       container.appendChild(bar);
-      saveBars();
-      document.getElementById('bar-name').value = '';
-    }
 
-    function adjustBar(button, value) {
-      const bar = button.closest('.bar');
-      const barFill = bar.querySelector('.bar-fill');
-      const maxValue = parseInt(bar.dataset.max);
-      let currentValue = parseInt(bar.dataset.current);
-
-      currentValue = Math.max(0, currentValue + value);
-      bar.dataset.current = currentValue;
-
-      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
-      barFill.style.width = `${widthPercentage}%`;
-      barFill.textContent = `${currentValue}/${maxValue}`;
-      saveBars();
-    }
-
-    function updateBarName(input) {
-      const newName = input.value.trim();
-      if (!newName) {
-        alert("O nome não pode estar vazio!");
-        input.value = input.defaultValue;
-      } else {
-        input.defaultValue = newName;
-      }
-      saveBars();
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.push(barData);
+      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
 
     function removeBar(button) {
-      const bar = button.parentNode;
-      container.removeChild(bar);
-      saveBars();
+      const bar = button.closest('.bar');
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = bars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+
+      if (index !== -1) {
+        bars.splice(index, 1);
+        localStorage.setItem('bars', JSON.stringify(bars));
+      }
+      bar.remove();
     }
 
-    function saveBars() {
-      const bars = [];
-      const allBars = document.querySelectorAll('.bar');
-      allBars.forEach(bar => {
-        const type = bar.dataset.type;
-        const name = bar.querySelector('input[name="bar-name"]').value;
-        const current = parseInt(bar.dataset.current);
-        const max = parseInt(bar.dataset.max);
-        bars.push({ type, name, initial: current, max });
-      });
-      localStorage.setItem('bars', JSON.stringify(bars));
+    function updateBarName(input) {
+      const bar = input.closest('.bar');
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const barName = input.value;
+      const barData = bars.find(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+
+      if (barData) {
+        barData.name = barName;
+        localStorage.setItem('bars', JSON.stringify(bars));
+      }
+    }
+
+    function adjustBar(button, amount) {
+      const bar = button.closest('.bar');
+      const current = parseInt(bar.dataset.current);
+      const max = parseInt(bar.dataset.max);
+      const newValue = Math.min(Math.max(current + amount, 0), max);
+
+      bar.dataset.current = newValue;
+      bar.querySelector('.bar-fill').style.width = `${(newValue / max) * 100}%`;
+      bar.querySelector('.bar-fill').textContent = `${newValue}/${max}`;
+
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const barData = bars.find(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+
+      if (barData) {
+        barData.initial = newValue;
+        localStorage.setItem('bars', JSON.stringify(bars));
+      }
     }
   </script>
 </body>
