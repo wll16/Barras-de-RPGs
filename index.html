@@ -87,6 +87,7 @@
       padding: 5px;
       margin: 5px;
     }
+
   </style>
 </head>
 <body>
@@ -260,30 +261,32 @@
     function updateBarName(input) {
       const bar = input.closest('.bar');
       const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const barName = input.value;
-      const barData = bars.find(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+      const index = bars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
 
-      if (barData) {
-        barData.name = barName;
+      if (index !== -1) {
+        bars[index].name = input.value;
         localStorage.setItem('bars', JSON.stringify(bars));
       }
     }
 
-    function adjustBar(button, amount) {
+    function adjustBar(button, value) {
       const bar = button.closest('.bar');
       const current = parseInt(bar.dataset.current);
       const max = parseInt(bar.dataset.max);
-      const newValue = Math.min(Math.max(current + amount, 0), max);
+      let newValue = current + value;
+
+      if (newValue < 0) newValue = 0;
+      if (newValue > max) newValue = max;
 
       bar.dataset.current = newValue;
-      bar.querySelector('.bar-fill').style.width = `${(newValue / max) * 100}%`;
+      bar.querySelector('.bar-fill').style.width = (newValue / max) * 100 + '%';
       bar.querySelector('.bar-fill').textContent = `${newValue}/${max}`;
 
       const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const barData = bars.find(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+      const index = bars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
 
-      if (barData) {
-        barData.initial = newValue;
+      if (index !== -1) {
+        bars[index].initial = newValue;
         localStorage.setItem('bars', JSON.stringify(bars));
       }
     }
