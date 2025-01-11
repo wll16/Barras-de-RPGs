@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status - Personalizadas</title>
+  <title>Barras de Status e Login</title>
   <style>
+    /* Estilos das barras de status */
     body {
       font-family: Arial, sans-serif;
       background-color: #1e1e1e;
@@ -74,11 +75,23 @@
       text-align: center;
       font-size: 14px;
     }
+
+    /* Estilos do formulário de login */
+    #login {
+      margin-top: 50px;
+    }
+    #login h2 {
+      color: white;
+    }
+    input {
+      padding: 5px;
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
   <h1>Barras de Status - RPG Personalizadas</h1>
-
+  
   <!-- Configuração para adicionar barras -->
   <div>
     <label for="bar-type">Tipo de Barra:</label>
@@ -89,8 +102,8 @@
       <option value="esforco" style="color:yellow;">Esforço</option>
       <option value="fome" style="color:orange;">Fome</option>
       <option value="sede" style="color:lightblue;">Sede</option>
-      <option value="determinacao" style="color:darkblue;">Determinação</option> <!-- Barra de Determinação com azul escuro -->
-      <option value="mana" style="color:deepskyblue;">Mana</option> <!-- Barra de Mana com azul diferenciado -->
+      <option value="determinacao" style="color:darkblue;">Determinação</option>
+      <option value="mana" style="color:deepskyblue;">Mana</option>
     </select>
     <label for="bar-name">Nome:</label>
     <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
@@ -102,13 +115,64 @@
   </div>
 
   <!-- Área onde as barras serão exibidas -->
-  <div class="container" id="bar-container">
+  <div class="container" id="bar-container"></div>
+
+  <hr>
+
+  <!-- Formulário de Login -->
+  <div id="login">
+    <h2>Login</h2>
+    <label>Email: <input type="email" id="email" /></label><br />
+    <label>Senha: <input type="password" id="password" /></label><br />
+    <button onclick="login()">Entrar</button>
+    <button onclick="register()">Registrar</button>
   </div>
+
+  <!-- Script Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+
+    async function register() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Usuário registrado com sucesso!");
+      } catch (error) {
+        alert("Erro ao registrar: " + error.message);
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login realizado com sucesso!");
+      } catch (error) {
+        alert("Erro ao fazer login: " + error.message);
+      }
+    }
+  </script>
 
   <script>
     const container = document.getElementById('bar-container');
 
-    // Carregar as barras salvas ao carregar a página
     window.onload = function() {
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
       savedBars.forEach(barData => {
@@ -117,7 +181,6 @@
       });
     };
 
-    // Função para criar uma barra
     function createBar(type, name, initial, max) {
       const bar = document.createElement('div');
       bar.className = 'bar';
@@ -140,7 +203,6 @@
       return bar;
     }
 
-    // Adicionar uma nova barra
     function addBar() {
       const type = document.getElementById('bar-type').value;
       const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
@@ -154,36 +216,25 @@
 
       const bar = createBar(type, name, initialValue, maxValue);
       container.appendChild(bar);
-
-      // Salvar as barras no localStorage
       saveBars();
-
-      // Limpa o campo de nome após adicionar
       document.getElementById('bar-name').value = '';
     }
 
-    // Ajustar o valor da barra
     function adjustBar(button, value) {
       const bar = button.closest('.bar');
       const barFill = bar.querySelector('.bar-fill');
       const maxValue = parseInt(bar.dataset.max);
       let currentValue = parseInt(bar.dataset.current);
 
-      // Permite exceder para cima, mas não permite ir abaixo de zero
       currentValue = Math.max(0, currentValue + value);
       bar.dataset.current = currentValue;
 
       const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
       barFill.style.width = `${widthPercentage}%`;
-
-      // Atualiza o texto da barra
       barFill.textContent = `${currentValue}/${maxValue}`;
-
-      // Salvar as barras no localStorage
       saveBars();
     }
 
-    // Atualizar nome da barra
     function updateBarName(input) {
       const newName = input.value.trim();
       if (!newName) {
@@ -192,21 +243,15 @@
       } else {
         input.defaultValue = newName;
       }
-
-      // Salvar as barras no localStorage
       saveBars();
     }
 
-    // Remover uma barra
     function removeBar(button) {
       const bar = button.parentNode;
       container.removeChild(bar);
-
-      // Salvar as barras no localStorage
       saveBars();
     }
 
-    // Salvar as barras no localStorage
     function saveBars() {
       const bars = [];
       const allBars = document.querySelectorAll('.bar');
@@ -217,74 +262,7 @@
         const max = parseInt(bar.dataset.max);
         bars.push({ type, name, initial: current, max });
       });
-
       localStorage.setItem('bars', JSON.stringify(bars));
-    }
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login com Firebase</title>
-</head>
-<body>
-  <h1>Bem-vindo ao Site</h1>
-
-  <!-- Formulário de Login -->
-  <div id="login">
-    <h2>Login</h2>
-    <label>Email: <input type="email" id="email" /></label><br />
-    <label>Senha: <input type="password" id="password" /></label><br />
-    <button onclick="login()">Entrar</button>
-    <button onclick="register()">Registrar</button>
-  </div>
-
-  <!-- Script Firebase -->
-  <script type="module">
-    // Importação e configuração do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_DOMINIO.firebaseapp.com",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_STORAGE_BUCKET",
-      messagingSenderId: "SEU_SENDER_ID",
-      appId: "SEU_APP_ID",
-    };
-
-    // Inicializando o Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-
-    // Função para registrar usuário
-    async function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Usuário registrado com sucesso!");
-      } catch (error) {
-        alert("Erro ao registrar: " + error.message);
-      }
-    }
-
-    // Função para fazer login
-    async function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login realizado com sucesso!");
-      } catch (error) {
-        alert("Erro ao fazer login: " + error.message);
-      }
     }
   </script>
 </body>
