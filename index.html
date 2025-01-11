@@ -223,3 +223,69 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login com Firebase</title>
+</head>
+<body>
+  <h1>Bem-vindo ao Site</h1>
+
+  <!-- Formulário de Login -->
+  <div id="login">
+    <h2>Login</h2>
+    <label>Email: <input type="email" id="email" /></label><br />
+    <label>Senha: <input type="password" id="password" /></label><br />
+    <button onclick="login()">Entrar</button>
+    <button onclick="register()">Registrar</button>
+  </div>
+
+  <!-- Script Firebase -->
+  <script type="module">
+    // Importação e configuração do Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_SENDER_ID",
+      appId: "SEU_APP_ID",
+    };
+
+    // Inicializando o Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+
+    // Função para registrar usuário
+    async function register() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Usuário registrado com sucesso!");
+      } catch (error) {
+        alert("Erro ao registrar: " + error.message);
+      }
+    }
+
+    // Função para fazer login
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login realizado com sucesso!");
+      } catch (error) {
+        alert("Erro ao fazer login: " + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
