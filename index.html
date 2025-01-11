@@ -248,49 +248,47 @@
 
     function removeBar(button) {
       const bar = button.closest('.bar');
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = bars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
-
-      if (index !== -1) {
-        bars.splice(index, 1);
-        localStorage.setItem('bars', JSON.stringify(bars));
-      }
       bar.remove();
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = savedBars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+      if (index !== -1) {
+        savedBars.splice(index, 1);
+      }
+      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
 
     function updateBarName(input) {
       const bar = input.closest('.bar');
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = bars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
+      const name = input.value;
+      bar.querySelector('input[name="bar-name"]').value = name;
 
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = savedBars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
       if (index !== -1) {
-        bars[index].name = input.value;
-        localStorage.setItem('bars', JSON.stringify(bars));
+        savedBars[index].name = name;
       }
+      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
 
     function adjustBar(button, value) {
       const bar = button.closest('.bar');
-      const current = parseInt(bar.dataset.current);
+      let current = parseInt(bar.dataset.current);
       const max = parseInt(bar.dataset.max);
-      const initial = parseInt(bar.dataset.initial);
-      let newValue = current + value;
 
-      if (newValue < 0) newValue = 0;
-      if (newValue > max) newValue = max;
-      if (newValue < initial) newValue = initial;  // Impede de ir abaixo do valor inicial
+      current = Math.max(0, Math.min(max, current + value));
 
-      bar.dataset.current = newValue;
-      bar.querySelector('.bar-fill').style.width = (newValue / max) * 100 + '%';
-      bar.querySelector('.bar-fill').textContent = `${newValue}/${max}`;
+      bar.dataset.current = current;
+      const barFill = bar.querySelector('.bar-fill');
+      barFill.style.width = (current / max) * 20 + '%';
+      barFill.textContent = current + '/' + max;
 
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = bars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
-
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = savedBars.findIndex(barData => barData.name === bar.querySelector('input[name="bar-name"]').value);
       if (index !== -1) {
-        bars[index].initial = newValue;
-        localStorage.setItem('bars', JSON.stringify(bars));
+        savedBars[index].initial = current;
       }
+      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
   </script>
 </body>
