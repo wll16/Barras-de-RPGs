@@ -134,6 +134,30 @@
     
     <div id="bar-container" class="container"></div>
   </div>
+   <div id="configuracoes">
+        <label for="tema">Escolha o tema:</label>
+        <select id="tema">
+            <option value="light">Claro</option>
+            <option value="dark">Escuro</option>
+        </select>
+
+        <button id="salvarConfig">Salvar Configurações</button>
+    </div>
+
+    <!-- Código JavaScript existente -->
+    <script>
+        console.log("Código JavaScript já existente.");
+        // Outros códigos que você já tem
+    </script>
+
+    <!-- Novo código JavaScript para salvar as configurações -->
+    <script>
+        document.getElementById('salvarConfig').addEventListener('click', function() {
+            var temaSelecionado = document.getElementById('tema').value;
+            localStorage.setItem('tema', temaSelecionado); // Salva as configurações no localStorage
+            alert("Configuração salva!");
+        });
+    </script>
 
   <script>
     let currentUser = null;
