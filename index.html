@@ -5,14 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barras de Status por Conta - RPG</title>
   <style>
+    /* Estilo geral da página */
+    body {
+      background-color: #333;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
     /* Estilo das barras */
     .bar {
       margin-bottom: 15px;
+      color: white;
     }
 
     .bar-inner {
       width: 100%;
-      background-color: #ddd;
+      background-color: #444;
       border: 1px solid #888;
       height: 25px;
     }
@@ -31,10 +39,32 @@
 
     button {
       margin: 5px;
+      background-color: #555;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #777;
     }
 
     input[type="text"], input[type="number"], select, input[type="password"] {
       margin: 5px;
+      padding: 5px;
+      background-color: #555;
+      border: 1px solid #888;
+      color: white;
+    }
+
+    select {
+      background-color: #555;
+      border: 1px solid #888;
+    }
+
+    h1, h3 {
+      color: white;
     }
   </style>
 </head>
@@ -221,69 +251,74 @@
     function adjustBar(button, value) {
       const bar = button.closest('.bar');
       const barFill = bar.querySelector('.bar-fill');
-      const maxValue = parseInt(bar.dataset.max, 10);
-      let currentValue = parseInt(bar.dataset.current, 10);
+      const current = parseInt(bar.dataset.current);
+      const max = parseInt(bar.dataset.max);
+      let newValue = current + value;
 
-      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
-      bar.dataset.current = currentValue;
+      if (newValue < 0) newValue = 0;
+      if (newValue > max) newValue = max;
 
-      const widthPercentage = (currentValue / maxValue) * 100;
-      barFill.style.width = `${widthPercentage}%`;
-      barFill.textContent = `${currentValue}/${maxValue}`;
-
-      saveBarsUpdate(bar);
+      bar.dataset.current = newValue;
+      barFill.style.width = `${(newValue / max) * 100}%`;
+      barFill.textContent = `${newValue}/${max}`;
     }
 
-    // Atualizar as barras no localStorage
-    function saveBarsUpdate(bar) {
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      
-      userBarConfigs.forEach(barData => {
-        if (barData.name === bar.querySelector('input').value) {
-          barData.initial = parseInt(bar.dataset.current, 10);
-        }
-      });
-      
-      userConfigs[currentUser] = userBarConfigs;
-      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
+    // Atualizar nome da barra
+    function updateBarName(input) {
+      const bar = input.closest('.bar');
+      const name = input.value;
+      bar.querySelector('input[type="text"]').value = name;
     }
 
-    // Salvar a configuração do personagem
+    // Remover uma barra
+    function removeBar(button) {
+      const bar = button.closest('.bar');
+      bar.remove();
+    }
+
+    // Salvar configuração do personagem
     function saveConfiguration() {
       const characterName = document.getElementById('character-name').value;
       if (!characterName) {
-        alert('Por favor, insira o nome do personagem.');
+        alert('Por favor, insira o nome do personagem!');
         return;
       }
 
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const config = {
-        name: characterName,
-        bars: bars
-      };
-
       const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
       const userBarConfigs = userConfigs[currentUser] || [];
-      userBarConfigs.push(config);
+      const bars = [];
+
+      const barElements = document.querySelectorAll('.bar');
+      barElements.forEach(bar => {
+        const name = bar.querySelector('input[type="text"]').value;
+        const type = bar.dataset.type;
+        const current = bar.dataset.current;
+        const max = bar.dataset.max;
+        bars.push({ name, type, current, max });
+      });
+
+      userBarConfigs.push({ name: characterName, bars });
       userConfigs[currentUser] = userBarConfigs;
       localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
 
       loadSavedConfigurations();
     }
 
-    // Carregar configuração de um personagem
+    // Carregar configuração do personagem
     function loadConfiguration() {
       const selectedConfigIndex = document.getElementById('saved-configurations').value;
       const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
       const userBarConfigs = userConfigs[currentUser] || [];
       const selectedConfig = userBarConfigs[selectedConfigIndex];
-      const characterName = selectedConfig.name;
       const bars = selectedConfig.bars;
-      
-      document.getElementById('character-name').value = characterName;
 
-      // Aqui você pode carregar as barras de status
+      document.getElementById('character-name').value = selectedConfig.name;
+      document.getElementById('bar-container').innerHTML = '';
+      
+      bars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.current, barData.max);
+        document.getElementById('bar-container').appendChild(bar);
+      });
     }
 
     // Função chamada ao carregar a página
