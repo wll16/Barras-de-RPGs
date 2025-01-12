@@ -112,26 +112,23 @@
 </div>
 
  <!-- Seção para escolher ou adicionar personagem -->
-  <div>
+   <div>
     <label for="character-list">Personagem:</label>
     <select id="character-list" onchange="loadBarsForCharacter()">
       <option value="">Selecione um personagem</option>
     </select>
     <input type="text" id="character-name" placeholder="Nome do novo personagem" />
-    <button onclick="createNewCharacter()">Criar Novo</button>
+    <button onclick="createNewCharacter()">Criar Novo Personagem</button>
   </div>
 
-  <!-- Configuração para adicionar barras -->
-  <div>
-    <!-- Configuração de barras omitida para brevidade -->
-  </div>
+  <!-- Área das barras -->
+  <div id="bar-container"></div>
 
-  <!-- Área onde as barras serão exibidas -->
-  <div class="container" id="bar-container"></div>
+  <button onclick="saveBars()">Salvar Barras</button>
 
   <script>
-    const container = document.getElementById('bar-container');
     const characterList = document.getElementById('character-list');
+    const container = document.getElementById('bar-container');
     let currentCharacter = '';
 
     // Inicializa a lista de personagens
@@ -146,6 +143,86 @@
       }
     }
 
+    // Cria um novo personagem
+    function createNewCharacter() {
+      const nameInput = document.getElementById('character-name');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        alert("O nome do personagem não pode estar vazio!");
+        return;
+      }
+
+      const characters = JSON.parse(localStorage.getItem('characters')) || {};
+      if (characters[name]) {
+        alert("Este personagem já existe!");
+        return;
+      }
+
+      characters[name] = []; // Inicia com uma lista de barras vazia
+      localStorage.setItem('characters', JSON.stringify(characters));
+      nameInput.value = '';
+      initializeCharacterList();
+      alert(`Personagem "${name}" criado com sucesso!`);
+    }
+
+    // Salva as barras para o personagem atual
+    function saveBars() {
+      if (!currentCharacter) {
+        alert("Selecione um personagem antes de salvar as barras!");
+        return;
+      }
+
+      const characters = JSON.parse(localStorage.getItem('characters')) || {};
+      const bars = Array.from(container.querySelectorAll('.bar')).map(bar => ({
+        type: bar.dataset.type,
+        name: bar.querySelector('input[name="bar-name"]').value,
+        current: parseInt(bar.dataset.current, 10),
+        max: parseInt(bar.dataset.max, 10),
+      }));
+
+      characters[currentCharacter] = bars;
+      localStorage.setItem('characters', JSON.stringify(characters));
+      alert(`Barras de "${currentCharacter}" salvas com sucesso!`);
+    }
+
+    // Carrega as barras para o personagem selecionado
+    function loadBarsForCharacter() {
+      currentCharacter = characterList.value;
+      container.innerHTML = ''; // Limpa a área das barras
+
+      if (!currentCharacter) return;
+
+      const characters = JSON.parse(localStorage.getItem('characters')) || {};
+      const characterBars = characters[currentCharacter] || [];
+
+      characterBars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.current, barData.max);
+        container.appendChild(bar);
+      });
+    }
+
+    // Cria visualmente uma barra
+    function createBar(type, name, current, max) {
+      const barDiv = document.createElement('div');
+      barDiv.className = 'bar';
+      barDiv.dataset.type = type;
+      barDiv.dataset.current = current;
+      barDiv.dataset.max = max;
+
+      barDiv.innerHTML = `
+        <label>${name}</label>
+        <input name="bar-name" value="${name}" />
+        <div>
+          <span>${current}/${max}</span>
+        </div>
+      `;
+
+      return barDiv;
+    }
+
+    // Inicialização ao carregar a página
+    window.onload = initializeCharacterList;
     // Criar um novo personagem
     function createNewCharacter() {
       const nameInput = document.getElementById('character-name');
