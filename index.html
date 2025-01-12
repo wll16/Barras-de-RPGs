@@ -160,6 +160,24 @@
     </script>
 
   <script>
+        let valorAtual = 0;  // Valor atual
+        const valorMaximo = 20; // Valor máximo, mas que pode ser ultrapassado
+
+        // Função para alterar o valor
+        function alterarValor(incremento) {
+            valorAtual += incremento;
+
+            // Garantir que o valor nunca seja menor que 0
+            if (valorAtual < 0) {
+                valorAtual = 0;
+            }
+
+            // Atualiza o valor exibido na página
+            document.getElementById("value").innerText = valorAtual;
+        }
+    </script>
+  
+  <script>
     let currentUser = null;
 
     // Função para alternar a exibição do formulário de login
