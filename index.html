@@ -467,6 +467,105 @@ window.onload = function() {
     alert("Nenhum personagem salvo! Crie um novo personagem para começar.");
   }
 };
+      const characterList = document.getElementById('character-list');
+  const container = document.getElementById('bar-container');
+  let currentCharacter = '';
+
+  // Inicializa a lista de personagens
+  function initializeCharacterList() {
+    const characters = JSON.parse(localStorage.getItem('characters')) || {};
+    characterList.innerHTML = '<option value="">Selecione um personagem</option>';
+    for (const character in characters) {
+      const option = document.createElement('option');
+      option.value = character;
+      option.textContent = character;
+      characterList.appendChild(option);
+    }
+  }
+
+  // Cria um novo personagem
+  function createNewCharacter() {
+    const nameInput = document.getElementById('character-name');
+    const name = nameInput.value.trim();
+
+    if (!name) {
+      alert("O nome do personagem não pode estar vazio!");
+      return;
+    }
+
+    const characters = JSON.parse(localStorage.getItem('characters')) || {};
+    if (characters[name]) {
+      alert("Esse personagem já existe!");
+      return;
+    }
+
+    characters[name] = [];
+    localStorage.setItem('characters', JSON.stringify(characters));
+    nameInput.value = '';
+    initializeCharacterList();
+    alert(`Personagem "${name}" criado com sucesso!`);
+  }
+
+  // Salva as barras para o personagem atual
+  function saveBars() {
+    if (!currentCharacter) {
+      alert("Selecione um personagem antes de salvar as barras!");
+      return;
+    }
+
+    const bars = Array.from(container.querySelectorAll('.bar')).map(bar => ({
+      type: bar.dataset.type,
+      name: bar.querySelector('input[name="bar-name"]').value,
+      current: parseInt(bar.dataset.current, 10),
+      max: parseInt(bar.dataset.max, 10),
+    }));
+
+    const characters = JSON.parse(localStorage.getItem('characters')) || {};
+    characters[currentCharacter] = bars;
+    localStorage.setItem('characters', JSON.stringify(characters));
+    alert(`Barras de "${currentCharacter}" salvas com sucesso!`);
+  }
+
+  // Carrega as barras para o personagem selecionado
+  function loadBarsForCharacter() {
+    currentCharacter = characterList.value;
+    container.innerHTML = '';
+
+    if (!currentCharacter) return;
+
+    const characters = JSON.parse(localStorage.getItem('characters')) || {};
+    const characterBars = characters[currentCharacter] || [];
+
+    characterBars.forEach(barData => {
+      const bar = createBar(barData.type, barData.name, barData.current, barData.max);
+      container.appendChild(bar);
+    });
+  }
+
+  // Cria visualmente uma barra
+  function createBar(type, name, current, max) {
+    const barDiv = document.createElement('div');
+    barDiv.className = 'bar';
+    barDiv.dataset.type = type;
+    barDiv.dataset.current = current;
+    barDiv.dataset.max = max;
+
+    barDiv.innerHTML = `
+      <label>${name}</label>
+      <input name="bar-name" value="${name}" />
+      <div>
+        <span>${current}/${max}</span>
+      </div>
+    `;
+
+    return barDiv;
+  }
+
+  // Inicializa tudo ao carregar a página
+  window.onload = function () {
+    initializeCharacterList();
+    characterList.addEventListener('change', loadBarsForCharacter);
+  };
   </script>
 </body>
 </html>
