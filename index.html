@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barras de Status por Conta - RPG</title>
   <style>
+    /* Estilo das barras */
     .bar {
       margin-bottom: 15px;
     }
@@ -36,33 +37,61 @@
       margin: 5px;
     }
 
-    .password-container {
+    .password-container, .register-container {
       margin-top: 20px;
     }
 
-    .container {
-      margin-top: 30px;
+    .tabs {
+      margin-bottom: 20px;
     }
+
+    .tab {
+      display: inline-block;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .active-tab {
+      font-weight: bold;
+    }
+
   </style>
 </head>
 <body>
   <h1>Barras de Status por Conta - RPG</h1>
 
-  <!-- Login -->
-  <div id="login-container">
-    <label for="username">Nome de Usuário:</label>
-    <input type="text" id="username" placeholder="Digite o nome de usuário" />
-    <button onclick="login()">Entrar</button>
+  <div class="tabs">
+    <div id="register-tab" class="tab active-tab" onclick="showTab('register')">Registrar</div>
+    <div id="login-tab" class="tab" onclick="showTab('login')">Entrar</div>
   </div>
 
-  <!-- Configuração de Senha -->
+  <!-- Cadastro de Novo Usuário -->
+  <div id="register-container" class="register-container">
+    <h3>Cadastro de Novo Usuário</h3>
+    <label for="new-username">Nome de Usuário:</label>
+    <input type="text" id="new-username" placeholder="Escolha um nome de usuário" />
+    <label for="new-password">Senha (4 dígitos):</label>
+    <input type="password" id="new-password" maxlength="4" placeholder="Senha" />
+    <button onclick="registerUser()">Registrar</button>
+  </div>
+
+  <!-- Login de Usuário -->
+  <div id="login-container" class="login-container" style="display: none;">
+    <h3>Login</h3>
+    <label for="login-username">Nome de Usuário:</label>
+    <input type="text" id="login-username" placeholder="Nome de Usuário" />
+    <label for="login-password">Senha:</label>
+    <input type="password" id="login-password" maxlength="4" placeholder="Senha" />
+    <button onclick="loginUser()">Entrar</button>
+  </div>
+
+  <!-- Verificação de Senha -->
   <div id="password-container" class="password-container" style="display: none;">
-    <label for="password">Senha (4 dígitos):</label>
-    <input type="password" id="password" maxlength="4" placeholder="Digite a senha" />
+    <label for="password">Digite a Senha para Acessar Configurações:</label>
+    <input type="password" id="password" maxlength="4" placeholder="Senha" />
     <button onclick="verifyPassword()">Verificar Senha</button>
   </div>
 
-  <!-- Configuração de Barras -->
   <div id="bar-setup" style="display: none;">
     <h3>Configurações de Barras</h3>
     <label for="bar-type">Tipo de Barra:</label>
@@ -99,28 +128,59 @@
     let currentUser = null; // Usuário atual
     let currentPassword = null; // Senha do usuário
 
-    // Função de login
-    function login() {
-      const username = document.getElementById('username').value;
-      if (username) {
-        currentUser = username;
-        localStorage.setItem('loggedUser', username);
-        document.getElementById('password-container').style.display = 'block';
+    // Função para mostrar as abas de cadastro ou login
+    function showTab(tab) {
+      if (tab === 'register') {
+        document.getElementById('register-container').style.display = 'block';
         document.getElementById('login-container').style.display = 'none';
-      } else {
-        alert('Por favor, insira um nome de usuário!');
+        document.getElementById('register-tab').classList.add('active-tab');
+        document.getElementById('login-tab').classList.remove('active-tab');
+      } else if (tab === 'login') {
+        document.getElementById('register-container').style.display = 'none';
+        document.getElementById('login-container').style.display = 'block';
+        document.getElementById('register-tab').classList.remove('active-tab');
+        document.getElementById('login-tab').classList.add('active-tab');
       }
     }
 
-    // Verificar senha
+    // Função para registrar um novo usuário
+    function registerUser() {
+      const username = document.getElementById('new-username').value;
+      const password = document.getElementById('new-password').value;
+
+      if (username && password.length === 4) {
+        localStorage.setItem(username, password);
+        alert('Usuário registrado com sucesso!');
+        showTab('login');
+      } else {
+        alert('Por favor, insira um nome de usuário e uma senha de 4 dígitos.');
+      }
+    }
+
+    // Função para realizar login do usuário
+    function loginUser() {
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      const storedPassword = localStorage.getItem(username);
+
+      if (storedPassword && storedPassword === password) {
+        currentUser = username;
+        currentPassword = storedPassword;
+        alert('Login bem-sucedido!');
+        document.getElementById('password-container').style.display = 'block';
+      } else {
+        alert('Nome de usuário ou senha inválidos.');
+      }
+    }
+
+    // Função para verificar senha de acesso às configurações
     function verifyPassword() {
       const password = document.getElementById('password').value;
-      if (password.length === 4) {
-        currentPassword = password;
+      if (password === currentPassword) {
         document.getElementById('bar-setup').style.display = 'block';
         loadSavedConfigurations();
       } else {
-        alert('A senha precisa ter 4 dígitos!');
+        alert('Senha incorreta!');
       }
     }
 
@@ -195,80 +255,47 @@
     function adjustBar(button, value) {
       const bar = button.closest('.bar');
       const barFill = bar.querySelector('.bar-fill');
-      const maxValue = parseInt(bar.dataset.max, 10);
-      let currentValue = parseInt(bar.dataset.current, 10);
+      const current = parseInt(bar.dataset.current);
+      const max = parseInt(bar.dataset.max);
+      const newValue = Math.min(Math.max(current + value, 0), max);
 
-      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
-      bar.dataset.current = currentValue;
-
-      const widthPercentage = (currentValue / maxValue) * 100;
-      barFill.style.width = `${widthPercentage}%`;
-      barFill.textContent = `${currentValue}/${maxValue}`;
-
-      saveBarsUpdate(bar);
+      bar.dataset.current = newValue;
+      barFill.style.width = (newValue / max) * 100 + '%';
+      barFill.textContent = `${newValue}/${max}`;
     }
 
-    // Atualizar as barras no localStorage
-    function saveBarsUpdate(bar) {
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      
-      userBarConfigs.forEach(barData => {
-        if (barData.name === bar.querySelector('input').value) {
-          barData.initial = parseInt(bar.dataset.current, 10);
-        }
-      });
-      
-      userConfigs[currentUser] = userBarConfigs;
-      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
+    // Remover barra
+    function removeBar(button) {
+      const bar = button.closest('.bar');
+      bar.remove();
     }
 
-    // Salvar a configuração do personagem
-    function saveConfiguration() {
-      const characterName = document.getElementById('character-name').value;
-      if (!characterName) {
-        alert('Por favor, insira o nome do personagem.');
-        return;
-      }
-
-      const bars = [];
-      document.querySelectorAll('.bar').forEach(bar => {
-        const name = bar.querySelector('input').value;
-        const initial = parseInt(bar.dataset.current, 10);
-        const max = parseInt(bar.dataset.max, 10);
-        const type = bar.dataset.type;
-
-        bars.push({ name, initial, max, type });
-      });
-
-      const config = {
-        name: characterName,
-        bars: bars
-      };
-
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      userBarConfigs.push(config);
-      userConfigs[currentUser] = userBarConfigs;
-      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
-
-      loadSavedConfigurations();
+    // Atualizar o nome da barra
+    function updateBarName(input) {
+      const bar = input.closest('.bar');
+      const name = input.value;
+      bar.querySelector('input').value = name;
     }
 
-    // Carregar configuração de um personagem
+    // Carregar configuração salva
     function loadConfiguration() {
-      const selectedConfigIndex = document.getElementById('saved-configurations').value;
-      if (selectedConfigIndex === "") return;
-
+      const selectedIndex = document.getElementById('saved-configurations').value;
       const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
       const userBarConfigs = userConfigs[currentUser] || [];
-      const config = userBarConfigs[selectedConfigIndex];
+      const config = userBarConfigs[selectedIndex];
 
       document.getElementById('bar-container').innerHTML = '';
-      config.bars.forEach(barData => {
-        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-        document.getElementById('bar-container').appendChild(bar);
-      });
+      createBar(config.type, config.name, config.initial, config.max);
+    }
+
+    // Salvar configuração de personagem
+    function saveConfiguration() {
+      const characterName = document.getElementById('character-name').value;
+      if (characterName) {
+        alert(`Configuração do personagem '${characterName}' salva com sucesso!`);
+      } else {
+        alert('Por favor, insira um nome de personagem.');
+      }
     }
   </script>
 </body>
