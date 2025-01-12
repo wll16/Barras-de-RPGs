@@ -114,24 +114,6 @@
     <p id="register-error" style="color: red; display: none;">Erro ao registrar usuário.</p>
   </div>
 
-  <div class="config-container" id="config-container" style="display: none;">
-    <h2>Configurações</h2>
-    <label for="bar-type">Tipo de Barra:</label>
-    <select id="bar-type">
-      <option value="vida">Vida</option>
-      <option value="sanidade">Sanidade</option>
-      <option value="fe">Fé</option>
-      <option value="esforco">Esforço</option>
-      <option value="fome">Fome</option>
-      <option value="sede">Sede</option>
-      <option value="determinacao">Determinação</option>
-      <option value="mana">Mana</option>
-    </select>
-    <input type="text" id="bar-name" placeholder="Nome da Barra (opcional)" />
-    <input type="number" id="initial-value" value="20" placeholder="Valor Inicial" min="0">
-    <input type="number" id="max-value" value="20" placeholder="Valor Máximo" min="1">
-    <button onclick="addBar()">Adicionar Barra</button>
-    
     <div id="bar-container" class="container"></div>
   </div>
    <div id="configuracoes">
@@ -143,6 +125,53 @@
 
         <button id="salvarConfig">Salvar Configurações</button>
     </div>
+
+<h2>Configurações</h2>
+  <label for="bar-type">Tipo de Barra:</label>
+  <select id="bar-type">
+    <option value="vida">Vida</option>
+    <option value="sanidade">Sanidade</option>
+    <option value="fe">Fé</option>
+    <option value="esforco">Esforço</option>
+    <option value="fome">Fome</option>
+    <option value="sede">Sede</option>
+    <option value="determinacao">Determinação</option>
+    <option value="mana">Mana</option>
+  </select>
+  <input type="text" id="bar-name" placeholder="Nome da Barra (opcional)" />
+  <input type="number" id="initial-value" value="20" placeholder="Valor Inicial" min="0">
+  <input type="number" id="max-value" value="20" placeholder="Valor Máximo" min="1">
+
+  <button onclick="criarBarra()">Criar Barra</button>
+
+  <div id="barra-container"></div>
+
+  <script>
+    function criarBarra() {
+      const tipoBarra = document.getElementById("bar-type").value;
+      const nomeBarra = document.getElementById("bar-name").value || tipoBarra;
+      const valorInicial = parseInt(document.getElementById("initial-value").value);
+      const valorMaximo = parseInt(document.getElementById("max-value").value);
+
+      const container = document.getElementById("barra-container");
+      container.innerHTML = ''; // Limpar qualquer barra anterior
+
+      const barra = document.createElement("div");
+      barra.classList.add("barra");
+
+      const preenchimento = document.createElement("div");
+      preenchimento.classList.add("preenchimento");
+      preenchimento.style.width = `${(valorInicial / valorMaximo) * 100}%`;
+
+      const nome = document.createElement("div");
+      nome.classList.add("nome-barra");
+      nome.innerText = nomeBarra;
+
+      barra.appendChild(nome);
+      barra.appendChild(preenchimento);
+      container.appendChild(barra);
+    }
+  </script>
 
     <!-- Código JavaScript existente -->
     <script>
