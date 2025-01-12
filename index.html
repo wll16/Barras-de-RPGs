@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barras de Status por Conta - RPG</title>
   <style>
-    /* Estilo das barras */
     .bar {
       margin-bottom: 15px;
     }
@@ -36,18 +35,34 @@
     input[type="text"], input[type="number"], select {
       margin: 5px;
     }
+
+    .password-container {
+      margin-top: 20px;
+    }
+
+    .container {
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
   <h1>Barras de Status por Conta - RPG</h1>
 
   <!-- Login -->
-  <div>
+  <div id="login-container">
     <label for="username">Nome de Usuário:</label>
     <input type="text" id="username" placeholder="Digite o nome de usuário" />
     <button onclick="login()">Entrar</button>
   </div>
 
+  <!-- Configuração de Senha -->
+  <div id="password-container" class="password-container" style="display: none;">
+    <label for="password">Senha (4 dígitos):</label>
+    <input type="password" id="password" maxlength="4" placeholder="Digite a senha" />
+    <button onclick="verifyPassword()">Verificar Senha</button>
+  </div>
+
+  <!-- Configuração de Barras -->
   <div id="bar-setup" style="display: none;">
     <h3>Configurações de Barras</h3>
     <label for="bar-type">Tipo de Barra:</label>
@@ -82,16 +97,7 @@
 
   <script>
     let currentUser = null; // Usuário atual
-
-    // Verifica se o usuário já está logado
-    function checkLoginStatus() {
-      const loggedUser = localStorage.getItem('loggedUser');
-      if (loggedUser) {
-        currentUser = loggedUser;
-        document.getElementById('bar-setup').style.display = 'block';
-        loadSavedConfigurations();
-      }
-    }
+    let currentPassword = null; // Senha do usuário
 
     // Função de login
     function login() {
@@ -99,10 +105,22 @@
       if (username) {
         currentUser = username;
         localStorage.setItem('loggedUser', username);
+        document.getElementById('password-container').style.display = 'block';
+        document.getElementById('login-container').style.display = 'none';
+      } else {
+        alert('Por favor, insira um nome de usuário!');
+      }
+    }
+
+    // Verificar senha
+    function verifyPassword() {
+      const password = document.getElementById('password').value;
+      if (password.length === 4) {
+        currentPassword = password;
         document.getElementById('bar-setup').style.display = 'block';
         loadSavedConfigurations();
       } else {
-        alert('Por favor, insira um nome de usuário!');
+        alert('A senha precisa ter 4 dígitos!');
       }
     }
 
@@ -213,7 +231,16 @@
         return;
       }
 
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const bars = [];
+      document.querySelectorAll('.bar').forEach(bar => {
+        const name = bar.querySelector('input').value;
+        const initial = parseInt(bar.dataset.current, 10);
+        const max = parseInt(bar.dataset.max, 10);
+        const type = bar.dataset.type;
+
+        bars.push({ name, initial, max, type });
+      });
+
       const config = {
         name: characterName,
         bars: bars
@@ -243,9 +270,6 @@
         document.getElementById('bar-container').appendChild(bar);
       });
     }
-
-    // Checar o login quando a página for carregada
-    window.onload = checkLoginStatus;
   </script>
 </body>
 </html>
