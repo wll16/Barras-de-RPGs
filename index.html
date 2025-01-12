@@ -167,12 +167,9 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyA8d4CwyD8cBFzijOBz42mhjSuiYVDNH-o",
       authDomain: "teste-login-c1b1c.firebaseapp.com",
@@ -183,150 +180,69 @@
       measurementId: "G-SQP027T0RV"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const auth = getAuth();
 
-    // Funções de login e cadastro
+    // Função de login
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-          // Login bem-sucedido
-          const user = userCredential.user;
           document.getElementById('login-container').style.display = 'none';
           document.getElementById('status-container').style.display = 'block';
-          console.log('Usuário logado:', user);
         })
         .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          alert('Erro ao fazer login: ' + errorMessage);
+          alert('Erro ao fazer login: ' + error.message);
         });
     }
 
+    // Função de cadastro
     function signup() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
       createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-          // Cadastro bem-sucedido
-          const user = userCredential.user;
           alert('Conta criada com sucesso!');
-          console.log('Usuário cadastrado:', user);
         })
         .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          alert('Erro ao criar conta: ' + errorMessage);
+          alert('Erro ao criar conta: ' + error.message);
         });
     }
 
     // Função para alternar o formulário de login
     function toggleLoginForm() {
       const loginForm = document.getElementById('login-container');
-      const isVisible = loginForm.style.display === 'block';
-      loginForm.style.display = isVisible ? 'none' : 'block';
+      loginForm.style.display = loginForm.style.display === 'none' ? 'block' : 'none';
     }
-  </script>
 
-  <script>
-    const container = document.getElementById('bar-container');
+    // Função para adicionar uma nova barra
+    function addBar() {
+      const barType = document.getElementById('bar-type').value;
+      const barName = document.getElementById('bar-name').value;
+      const initialValue = document.getElementById('initial-value').value;
+      const maxValue = document.getElementById('max-value').value;
 
-    window.onload = function() {
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.forEach(barData => {
-        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-        container.appendChild(bar);
-      });
-    };
-
-    function createBar(type, name, initial, max) {
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.dataset.max = max;
-      bar.dataset.type = type;
-      bar.innerHTML = `
-        <input type="text" value="${name}" onchange="updateBarName(this)" />
+      const barContainer = document.getElementById('bar-container');
+      const newBar = document.createElement('div');
+      newBar.classList.add('bar');
+      newBar.innerHTML = `
         <div class="bar-inner">
-          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
-        </div>
-        <div>
-          <button onclick="adjustBar(this, -5)">-5</button>
-          <button onclick="adjustBar(this, -1)">-1</button>
-          <button onclick="adjustBar(this, 1)">+1</button>
-          <button onclick="adjustBar(this, 5)">+5</button>
+          <div class="bar-fill ${barType}" style="width: ${(initialValue / maxValue) * 100}%">
+            ${barName}: ${initialValue} / ${maxValue}
+          </div>
         </div>
         <button class="remove" onclick="removeBar(this)">Remover</button>
       `;
-      bar.dataset.current = initial;
-      return bar;
+      barContainer.appendChild(newBar);
     }
 
-    function addBar() {
-      const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value || type;
-      const initialValue = parseInt(document.getElementById('initial-value').value);
-      const maxValue = parseInt(document.getElementById('max-value').value);
-
-      if (initialValue < 0 || initialValue > maxValue) {
-        alert('O valor inicial não pode ser maior que o máximo ou menor que 0');
-        return;
-      }
-
-      const bar = createBar(type, name, initialValue, maxValue);
-      container.appendChild(bar);
-
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      bars.push({ type, name, initial: initialValue, max: maxValue });
-      localStorage.setItem('bars', JSON.stringify(bars));
-    }
-
+    // Função para remover uma barra
     function removeBar(button) {
-      const bar = button.closest('.bar');
+      const bar = button.parentElement;
       bar.remove();
-
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = bars.findIndex(b => b.name === bar.querySelector('input').value);
-      if (index !== -1) {
-        bars.splice(index, 1);
-      }
-      localStorage.setItem('bars', JSON.stringify(bars));
-    }
-
-    function adjustBar(button, value) {
-      const bar = button.closest('.bar');
-      const current = parseInt(bar.dataset.current);
-      const max = parseInt(bar.dataset.max);
-
-      const newValue = Math.min(Math.max(current + value, 0), max);
-      bar.dataset.current = newValue;
-
-      const fill = bar.querySelector('.bar-fill');
-      fill.style.width = `${(newValue / max) * 100}%`;
-      fill.innerHTML = `${newValue}/${max}`;
-
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = bars.findIndex(b => b.name === bar.querySelector('input').value);
-      if (index !== -1) {
-        bars[index].initial = newValue;
-        localStorage.setItem('bars', JSON.stringify(bars));
-      }
-    }
-
-    function updateBarName(input) {
-      const bar = input.closest('.bar');
-      const bars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = bars.findIndex(b => b.name === bar.querySelector('input').value);
-
-      if (index !== -1) {
-        bars[index].name = input.value;
-        localStorage.setItem('bars', JSON.stringify(bars));
-      }
     }
   </script>
 </body>
