@@ -3,90 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status e Login</title>
+  <title>Barras de Status por Conta - RPG</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #1e1e1e;
-      color: white;
-      text-align: center;
-    }
-
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-
+    /* Estilo das barras */
     .bar {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border: 2px solid white;
-      border-radius: 5px;
-      padding: 5px;
-      background-color: #2e2e2e;
+      margin-bottom: 15px;
     }
 
     .bar-inner {
       width: 100%;
-      height: 20px;
-      border-radius: 5px;
-      background-color: grey;
-      overflow: hidden;
+      background-color: #ddd;
+      border: 1px solid #888;
+      height: 25px;
     }
 
     .bar-fill {
       height: 100%;
       text-align: center;
-      color: black;
-      font-size: 12px;
-      font-weight: bold;
-      transition: width 0.3s;
-    }
-
-    .vida { background-color: red; }
-    .sanidade { background-color: blue; }
-    .fe { background-color: gold; }
-    .esforco { background-color: yellow; }
-    .fome { background-color: #ff7f00; }
-    .sede { background-color: #00bfff; }
-    .determinacao { background-color: #003366; }
-    .mana { background-color: #1e90ff; }
-
-    button {
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      background-color: #4caf50;
+      line-height: 25px;
       color: white;
     }
 
-    button.remove {
-      background-color: #f44336;
+    .remove {
+      margin-top: 10px;
+      color: red;
     }
 
-    input, select {
-      padding: 5px;
+    button {
       margin: 5px;
-      border-radius: 5px;
-      border: 1px solid white;
-      color: black;
     }
 
-    select {
-      width: 120px;
-      font-size: 14px;
+    input[type="text"], input[type="number"], select {
+      margin: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Barras de Status - RPG</h1>
+  <h1>Barras de Status por Conta - RPG</h1>
 
+  <!-- Login -->
   <div>
+    <label for="username">Nome de Usuário:</label>
+    <input type="text" id="username" placeholder="Digite o nome de usuário" />
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div id="bar-setup" style="display: none;">
+    <h3>Configurações de Barras</h3>
     <label for="bar-type">Tipo de Barra:</label>
     <select id="bar-type">
       <option value="vida">Vida</option>
@@ -118,19 +81,40 @@
   <div class="container" id="bar-container"></div>
 
   <script>
-    const container = document.getElementById('bar-container');
-    const characterNameInput = document.getElementById('character-name');
-    const savedConfigSelect = document.getElementById('saved-configurations');
+    let currentUser = null; // Usuário atual
 
-    // Carregar configurações salvas
-    window.onload = function() {
-      loadSavedConfigurations();
-    };
+    // Verifica se o usuário já está logado
+    function checkLoginStatus() {
+      const loggedUser = localStorage.getItem('loggedUser');
+      if (loggedUser) {
+        currentUser = loggedUser;
+        document.getElementById('bar-setup').style.display = 'block';
+        loadSavedConfigurations();
+      }
+    }
 
+    // Função de login
+    function login() {
+      const username = document.getElementById('username').value;
+      if (username) {
+        currentUser = username;
+        localStorage.setItem('loggedUser', username);
+        document.getElementById('bar-setup').style.display = 'block';
+        loadSavedConfigurations();
+      } else {
+        alert('Por favor, insira um nome de usuário!');
+      }
+    }
+
+    // Carregar configurações salvas para o usuário
     function loadSavedConfigurations() {
-      const savedConfigs = JSON.parse(localStorage.getItem('configurations')) || [];
+      if (!currentUser) return;
+      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
+      const userBarConfigs = userConfigs[currentUser] || [];
+      const savedConfigSelect = document.getElementById('saved-configurations');
       savedConfigSelect.innerHTML = '';
-      savedConfigs.forEach((config, index) => {
+
+      userBarConfigs.forEach((config, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = config.name;
@@ -138,6 +122,7 @@
       });
     }
 
+    // Adicionar uma barra
     function addBar() {
       const type = document.getElementById('bar-type').value;
       const name = document.getElementById('bar-name').value || type;
@@ -151,18 +136,21 @@
 
       const barData = { type, name, initial: initialValue, max: maxValue };
       const bar = createBar(type, name, initialValue, maxValue);
-      container.appendChild(bar);
+      document.getElementById('bar-container').appendChild(bar);
 
-      // Salvar nova barra no localStorage
       saveBars(barData);
     }
 
+    // Salvar barras no localStorage por usuário
     function saveBars(barData) {
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.push(barData);
-      localStorage.setItem('bars', JSON.stringify(savedBars));
+      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
+      const userBarConfigs = userConfigs[currentUser] || [];
+      userBarConfigs.push(barData);
+      userConfigs[currentUser] = userBarConfigs;
+      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
     }
 
+    // Criar uma barra de status
     function createBar(type, name, initial, max) {
       const bar = document.createElement('div');
       bar.className = 'bar';
@@ -185,18 +173,7 @@
       return bar;
     }
 
-    function removeBar(button) {
-      const bar = button.closest('.bar');
-      const type = bar.dataset.type;
-      const name = bar.querySelector('input').value;
-
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.filter(barData => !(barData.type === type && barData.name === name));
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
-
-      bar.remove();
-    }
-
+    // Ajustar valor da barra
     function adjustBar(button, value) {
       const bar = button.closest('.bar');
       const barFill = bar.querySelector('.bar-fill');
@@ -210,18 +187,27 @@
       barFill.style.width = `${widthPercentage}%`;
       barFill.textContent = `${currentValue}/${maxValue}`;
 
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.map(barData => {
-        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input').value) {
-          barData.initial = currentValue;
-        }
-        return barData;
-      });
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
+      saveBarsUpdate(bar);
     }
 
+    // Atualizar as barras no localStorage
+    function saveBarsUpdate(bar) {
+      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
+      const userBarConfigs = userConfigs[currentUser] || [];
+      
+      userBarConfigs.forEach(barData => {
+        if (barData.name === bar.querySelector('input').value) {
+          barData.initial = parseInt(bar.dataset.current, 10);
+        }
+      });
+      
+      userConfigs[currentUser] = userBarConfigs;
+      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
+    }
+
+    // Salvar a configuração do personagem
     function saveConfiguration() {
-      const characterName = characterNameInput.value;
+      const characterName = document.getElementById('character-name').value;
       if (!characterName) {
         alert('Por favor, insira o nome do personagem.');
         return;
@@ -233,28 +219,33 @@
         bars: bars
       };
 
-      const savedConfigs = JSON.parse(localStorage.getItem('configurations')) || [];
-      savedConfigs.push(config);
-      localStorage.setItem('configurations', JSON.stringify(savedConfigs));
+      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
+      const userBarConfigs = userConfigs[currentUser] || [];
+      userBarConfigs.push(config);
+      userConfigs[currentUser] = userBarConfigs;
+      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
 
       loadSavedConfigurations();
     }
 
+    // Carregar configuração de um personagem
     function loadConfiguration() {
-      const selectedConfigIndex = savedConfigSelect.value;
+      const selectedConfigIndex = document.getElementById('saved-configurations').value;
       if (selectedConfigIndex === "") return;
 
-      const savedConfigs = JSON.parse(localStorage.getItem('configurations')) || [];
-      const config = savedConfigs[selectedConfigIndex];
+      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
+      const userBarConfigs = userConfigs[currentUser] || [];
+      const config = userBarConfigs[selectedConfigIndex];
 
-      // Limpar todas as barras antes de carregar a nova configuração
-      container.innerHTML = '';
-
+      document.getElementById('bar-container').innerHTML = '';
       config.bars.forEach(barData => {
         const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-        container.appendChild(bar);
+        document.getElementById('bar-container').appendChild(bar);
       });
     }
+
+    // Checar o login quando a página for carregada
+    window.onload = checkLoginStatus;
   </script>
 </body>
 </html>
