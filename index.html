@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status e Login</title>
+  <title>Barras de Status - RPG</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -104,17 +104,22 @@
     <button onclick="addBar()">Adicionar Barra</button>
   </div>
 
+  <div>
+    <label for="config-name">Nome da Configuração:</label>
+    <input type="text" id="config-name" placeholder="Nome da Configuração">
+    <button onclick="saveConfig()">Salvar Configuração</button>
+    <button onclick="loadConfig()">Carregar Configuração</button>
+    <button onclick="deleteConfig()">Excluir Configuração</button>
+  </div>
+
   <div class="container" id="bar-container"></div>
 
   <script>
     const container = document.getElementById('bar-container');
+    const configNameInput = document.getElementById('config-name');
 
     window.onload = function() {
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.forEach(barData => {
-        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-        container.appendChild(bar);
-      });
+      loadConfig();
     };
 
     function createBar(type, name, initial, max) {
@@ -122,7 +127,7 @@
       bar.className = 'bar';
       bar.dataset.max = max;
       bar.dataset.type = type;
-      bar.innerHTML = `
+      bar.innerHTML = ` 
         <input type="text" value="${name}" onchange="updateBarName(this)" />
         <div class="bar-inner">
           <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
@@ -207,6 +212,59 @@
         return barData;
       });
       localStorage.setItem('bars', JSON.stringify(updatedBars));
+    }
+
+    function saveConfig() {
+      const configName = configNameInput.value.trim();
+      if (!configName) {
+        alert("Digite um nome para a configuração.");
+        return;
+      }
+
+      const barsData = Array.from(container.querySelectorAll('.bar')).map(bar => {
+        return {
+          type: bar.dataset.type,
+          name: bar.querySelector('input').value,
+          initial: parseInt(bar.dataset.current),
+          max: parseInt(bar.dataset.max),
+        };
+      });
+
+      const savedConfigs = JSON.parse(localStorage.getItem('configs')) || {};
+      savedConfigs[configName] = barsData;
+      localStorage.setItem('configs', JSON.stringify(savedConfigs));
+
+      alert("Configuração salva!");
+    }
+
+    function loadConfig() {
+      const configName = configNameInput.value.trim();
+      const savedConfigs = JSON.parse(localStorage.getItem('configs')) || {};
+
+      if (savedConfigs[configName]) {
+        container.innerHTML = ''; // Clear current bars
+        savedConfigs[configName].forEach(barData => {
+          const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
+          container.appendChild(bar);
+        });
+      } else {
+        alert("Configuração não encontrada.");
+      }
+    }
+
+    function deleteConfig() {
+      const configName = configNameInput.value.trim();
+      const savedConfigs = JSON.parse(localStorage.getItem('configs')) || {};
+
+      if (savedConfigs[configName]) {
+        delete savedConfigs[configName];
+        localStorage.setItem('configs', JSON.stringify(savedConfigs));
+
+        alert("Configuração excluída.");
+        container.innerHTML = ''; // Clear bars
+      } else {
+        alert("Configuração não encontrada.");
+      }
     }
   </script>
 </body>
