@@ -3,96 +3,90 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status por Conta - RPG</title>
+  <title>Barras de Status e Login</title>
   <style>
-    /* Estilo geral da página */
     body {
-      background-color: #333;
-      color: white;
       font-family: Arial, sans-serif;
+      background-color: #121212; /* Cor de fundo escura */
+      color: white;
+      text-align: center;
     }
 
-    /* Estilo das barras */
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
     .bar {
-      margin-bottom: 15px;
-      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 2px solid white;
+      border-radius: 5px;
+      padding: 5px;
+      background-color: #2e2e2e; /* Cor de fundo das barras */
     }
 
     .bar-inner {
       width: 100%;
-      background-color: #444;
-      border: 1px solid #888;
-      height: 25px;
+      height: 20px;
+      border-radius: 5px;
+      background-color: grey;
+      overflow: hidden;
     }
 
     .bar-fill {
       height: 100%;
       text-align: center;
-      line-height: 25px;
-      color: white;
+      color: black;
+      font-size: 12px;
+      font-weight: bold;
+      transition: width 0.3s;
     }
 
-    .remove {
-      margin-top: 10px;
-      color: red;
-    }
+    .vida { background-color: red; }
+    .sanidade { background-color: blue; }
+    .fe { background-color: gold; }
+    .esforco { background-color: yellow; }
+    .fome { background-color: #ff7f00; }
+    .sede { background-color: #00bfff; }
+    .determinacao { background-color: #003366; }
+    .mana { background-color: #1e90ff; }
 
     button {
-      margin: 5px;
-      background-color: #555;
-      color: white;
+      padding: 5px 10px;
       border: none;
-      padding: 5px;
+      border-radius: 5px;
       cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #777;
-    }
-
-    input[type="text"], input[type="number"], select, input[type="password"] {
       margin: 5px;
-      padding: 5px;
-      background-color: #555;
-      border: 1px solid #888;
+      background-color: #4caf50;
       color: white;
+    }
+
+    button.remove {
+      background-color: #f44336;
+    }
+
+    input, select {
+      padding: 5px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid white;
+      color: black;
     }
 
     select {
-      background-color: #555;
-      border: 1px solid #888;
-    }
-
-    h1, h3 {
-      color: white;
+      width: 120px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h1>Barras de Status por Conta - RPG</h1>
+  <h1>Barras de Status - RPG</h1>
 
-  <!-- Registro -->
-  <div id="register-section">
-    <h3>Cadastro</h3>
-    <label for="register-username">Nome de Usuário:</label>
-    <input type="text" id="register-username" placeholder="Escolha um nome de usuário" />
-    <label for="register-password">Senha (4 dígitos):</label>
-    <input type="password" id="register-password" placeholder="Senha (4 dígitos)" maxlength="4" />
-    <button onclick="register()">Registrar</button>
-  </div>
-
-  <!-- Login -->
-  <div id="login-section">
-    <h3>Login</h3>
-    <label for="login-username">Nome de Usuário:</label>
-    <input type="text" id="login-username" placeholder="Digite o nome de usuário" />
-    <label for="login-password">Senha:</label>
-    <input type="password" id="login-password" placeholder="Digite a senha" />
-    <button onclick="login()">Entrar</button>
-  </div>
-
-  <div id="bar-setup" style="display: none;">
-    <h3>Configurações de Barras</h3>
+  <div>
     <label for="bar-type">Tipo de Barra:</label>
     <select id="bar-type">
       <option value="vida">Vida</option>
@@ -110,121 +104,19 @@
     <button onclick="addBar()">Adicionar Barra</button>
   </div>
 
-  <div>
-    <h3>Configurações de Personagens</h3>
-    <label for="character-name">Nome do Personagem:</label>
-    <input type="text" id="character-name" placeholder="Nome do Personagem" />
-    <button onclick="saveConfiguration()">Salvar Configuração</button>
-
-    <h4>Carregar Configuração</h4>
-    <select id="saved-configurations"></select>
-    <button onclick="loadConfiguration()">Carregar</button>
-  </div>
-
   <div class="container" id="bar-container"></div>
 
   <script>
-    let currentUser = null; // Usuário atual
+    const container = document.getElementById('bar-container');
 
-    // Verifica se o usuário já está logado
-    function checkLoginStatus() {
-      const loggedUser = localStorage.getItem('loggedUser');
-      if (loggedUser) {
-        currentUser = loggedUser;
-        document.getElementById('bar-setup').style.display = 'block';
-        loadSavedConfigurations();
-      }
-    }
-
-    // Função de login
-    function login() {
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
-
-      if (!username || !password) {
-        alert('Por favor, insira nome de usuário e senha.');
-        return;
-      }
-
-      const users = JSON.parse(localStorage.getItem('users')) || {};
-      if (users[username] && users[username].password === password) {
-        currentUser = username;
-        localStorage.setItem('loggedUser', username);
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('bar-setup').style.display = 'block';
-        loadSavedConfigurations();
-      } else {
-        alert('Nome de usuário ou senha incorretos.');
-      }
-    }
-
-    // Função de registro
-    function register() {
-      const username = document.getElementById('register-username').value;
-      const password = document.getElementById('register-password').value;
-
-      if (!username || password.length !== 4) {
-        alert('Por favor, insira um nome de usuário válido e uma senha de 4 dígitos.');
-        return;
-      }
-
-      const users = JSON.parse(localStorage.getItem('users')) || {};
-      if (users[username]) {
-        alert('Este nome de usuário já está registrado.');
-      } else {
-        users[username] = { password };
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('Registro bem-sucedido! Agora faça login.');
-        document.getElementById('register-section').style.display = 'none';
-        document.getElementById('login-section').style.display = 'block';
-      }
-    }
-
-    // Carregar configurações salvas para o usuário
-    function loadSavedConfigurations() {
-      if (!currentUser) return;
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      const savedConfigSelect = document.getElementById('saved-configurations');
-      savedConfigSelect.innerHTML = '';
-
-      userBarConfigs.forEach((config, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = config.name;
-        savedConfigSelect.appendChild(option);
+    window.onload = function() {
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
+        container.appendChild(bar);
       });
-    }
+    };
 
-    // Adicionar uma barra
-    function addBar() {
-      const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value || type;
-      const initialValue = parseInt(document.getElementById('initial-value').value);
-      const maxValue = parseInt(document.getElementById('max-value').value);
-
-      if (initialValue < 0 || initialValue > maxValue) {
-        alert('O valor inicial não pode ser maior que o valor máximo!');
-        return;
-      }
-
-      const barData = { type, name, initial: initialValue, max: maxValue };
-      const bar = createBar(type, name, initialValue, maxValue);
-      document.getElementById('bar-container').appendChild(bar);
-
-      saveBars(barData);
-    }
-
-    // Salvar barras no localStorage por usuário
-    function saveBars(barData) {
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      userBarConfigs.push(barData);
-      userConfigs[currentUser] = userBarConfigs;
-      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
-    }
-
-    // Criar uma barra de status
     function createBar(type, name, initial, max) {
       const bar = document.createElement('div');
       bar.className = 'bar';
@@ -247,83 +139,74 @@
       return bar;
     }
 
-    // Ajustar valor da barra
-    function adjustBar(button, value) {
-      const bar = button.closest('.bar');
-      const barFill = bar.querySelector('.bar-fill');
-      const current = parseInt(bar.dataset.current);
-      const max = parseInt(bar.dataset.max);
-      let newValue = current + value;
+    function addBar() {
+      const type = document.getElementById('bar-type').value;
+      const name = document.getElementById('bar-name').value || type;
+      const initialValue = parseInt(document.getElementById('initial-value').value);
+      const maxValue = parseInt(document.getElementById('max-value').value);
 
-      if (newValue < 0) newValue = 0;
-      if (newValue > max) newValue = max;
-
-      bar.dataset.current = newValue;
-      barFill.style.width = `${(newValue / max) * 100}%`;
-      barFill.textContent = `${newValue}/${max}`;
-    }
-
-    // Atualizar nome da barra
-    function updateBarName(input) {
-      const bar = input.closest('.bar');
-      const name = input.value;
-      bar.querySelector('input[type="text"]').value = name;
-    }
-
-    // Remover uma barra
-    function removeBar(button) {
-      const bar = button.closest('.bar');
-      bar.remove();
-    }
-
-    // Salvar configuração do personagem
-    function saveConfiguration() {
-      const characterName = document.getElementById('character-name').value;
-      if (!characterName) {
-        alert('Por favor, insira o nome do personagem!');
+      if (initialValue < 0 || initialValue > maxValue) {
+        alert('O valor inicial não pode ser maior que o valor máximo!');
         return;
       }
 
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      const bars = [];
+      const barData = { type, name, initial: initialValue, max: maxValue };
+      const bar = createBar(type, name, initialValue, maxValue);
+      container.appendChild(bar);
 
-      const barElements = document.querySelectorAll('.bar');
-      barElements.forEach(bar => {
-        const name = bar.querySelector('input[type="text"]').value;
-        const type = bar.dataset.type;
-        const current = bar.dataset.current;
-        const max = bar.dataset.max;
-        bars.push({ name, type, current, max });
-      });
-
-      userBarConfigs.push({ name: characterName, bars });
-      userConfigs[currentUser] = userBarConfigs;
-      localStorage.setItem('userConfigs', JSON.stringify(userConfigs));
-
-      loadSavedConfigurations();
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.push(barData);
+      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
 
-    // Carregar configuração do personagem
-    function loadConfiguration() {
-      const selectedConfigIndex = document.getElementById('saved-configurations').value;
-      const userConfigs = JSON.parse(localStorage.getItem('userConfigs')) || {};
-      const userBarConfigs = userConfigs[currentUser] || [];
-      const selectedConfig = userBarConfigs[selectedConfigIndex];
-      const bars = selectedConfig.bars;
+    function removeBar(button) {
+      const bar = button.closest('.bar');
+      const type = bar.dataset.type;
+      const name = bar.querySelector('input').value;
 
-      document.getElementById('character-name').value = selectedConfig.name;
-      document.getElementById('bar-container').innerHTML = '';
-      
-      bars.forEach(barData => {
-        const bar = createBar(barData.type, barData.name, barData.current, barData.max);
-        document.getElementById('bar-container').appendChild(bar);
-      });
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const updatedBars = savedBars.filter(barData => !(barData.type === type && barData.name === name));
+      localStorage.setItem('bars', JSON.stringify(updatedBars));
+
+      bar.remove();
     }
 
-    // Função chamada ao carregar a página
-    window.onload = function() {
-      checkLoginStatus();
+    function adjustBar(button, value) {
+      const bar = button.closest('.bar');
+      const barFill = bar.querySelector('.bar-fill');
+      const maxValue = parseInt(bar.dataset.max, 10);
+      let currentValue = parseInt(bar.dataset.current, 10);
+
+      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
+      bar.dataset.current = currentValue;
+
+      const widthPercentage = (currentValue / maxValue) * 100;
+      barFill.style.width = `${widthPercentage}%`;
+      barFill.textContent = `${currentValue}/${maxValue}`;
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const updatedBars = savedBars.map(barData => {
+        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input').value) {
+          barData.initial = currentValue;
+        }
+        return barData;
+      });
+      localStorage.setItem('bars', JSON.stringify(updatedBars));
+    }
+
+    function updateBarName(input) {
+      const bar = input.closest('.bar');
+      const type = bar.dataset.type;
+      const newName = input.value;
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const updatedBars = savedBars.map(barData => {
+        if (barData.type === type && barData.name === bar.querySelector('input').defaultValue) {
+          barData.name = newName;
+        }
+        return barData;
+      });
+      localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
   </script>
 </body>
