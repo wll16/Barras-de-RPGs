@@ -118,6 +118,7 @@
     <input type="text" id="login-username" placeholder="Nome de usuário">
     <input type="password" id="login-password" placeholder="Senha">
     <button onclick="login()">Entrar</button>
+    <p id="login-error" style="color: red; display: none;">Nome de usuário ou senha incorretos.</p>
   </div>
 
   <!-- Formulário de Registro -->
@@ -126,6 +127,8 @@
     <input type="text" id="register-username" placeholder="Nome de usuário">
     <input type="password" id="register-password" placeholder="Senha">
     <button onclick="register()">Registrar</button>
+    <p id="register-success" style="color: green; display: none;">Usuário registrado com sucesso!</p>
+    <p id="register-error" style="color: red; display: none;">Erro ao registrar usuário.</p>
   </div>
 
   <div>
@@ -249,13 +252,54 @@
 
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
       const updatedBars = savedBars.map(barData => {
-        if (barData.type === type && barData.name === bar.querySelector('input').defaultValue) {
+        if (barData.type === type && barData.name === input.defaultValue) {
           barData.name = newName;
         }
         return barData;
       });
       localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
+
+    // Função de Login
+    function login() {
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+
+      const user = users.find(u => u.username === username && u.password === password);
+      if (user) {
+        document.getElementById('login-form').style.display = 'none';
+        alert('Login bem-sucedido!');
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+
+    // Função de Registro
+    function register() {
+      const username = document.getElementById('register-username').value;
+      const password = document.getElementById('register-password').value;
+
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      if (users.find(u => u.username === username)) {
+        alert('Usuário já existe!');
+        return;
+      }
+
+      users.push({ username, password });
+      localStorage.setItem('users', JSON.stringify(users));
+      document.getElementById('register-form').style.display = 'none';
+      alert('Usuário registrado com sucesso!');
+    }
+
+    // Carregar barras ao iniciar
+    window.onload = () => {
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
+        container.appendChild(bar);
+      });
+    };
   </script>
 </body>
 </html>
