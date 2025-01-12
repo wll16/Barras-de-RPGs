@@ -10,6 +10,8 @@
       background-color: #1e1e1e;
       color: white;
       text-align: center;
+      margin: 0;
+      padding: 0;
     }
 
     .container {
@@ -88,16 +90,47 @@
       flex-direction: column;
       align-items: center;
       margin-top: 50px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 100;
     }
 
     .login-container input {
       width: 200px;
       margin: 10px;
     }
+
+    /* Ícone de login no canto */
+    .login-icon {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #4caf50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      font-size: 24px;
+    }
   </style>
 </head>
 <body>
   <h1>Barras de Status - RPG</h1>
+
+  <!-- Ícone de login -->
+  <div class="login-icon" onclick="toggleLoginForm()">
+    <span>Login</span>
+  </div>
 
   <!-- Formulário de Login -->
   <div class="login-container" id="login-container">
@@ -106,6 +139,7 @@
     <input type="password" id="password" placeholder="Senha" />
     <button onclick="login()">Login</button>
     <button onclick="signup()">Criar Conta</button>
+    <button onclick="toggleLoginForm()">Fechar</button>
   </div>
 
   <!-- Conteúdo de barras de status -->
@@ -191,6 +225,13 @@
           alert('Erro ao criar conta: ' + errorMessage);
         });
     }
+
+    // Função para alternar o formulário de login
+    function toggleLoginForm() {
+      const loginForm = document.getElementById('login-container');
+      const isVisible = loginForm.style.display === 'block';
+      loginForm.style.display = isVisible ? 'none' : 'block';
+    }
   </script>
 
   <script>
@@ -233,67 +274,59 @@
       const maxValue = parseInt(document.getElementById('max-value').value);
 
       if (initialValue < 0 || initialValue > maxValue) {
-        alert('O valor inicial não pode ser maior que o valor máximo!');
+        alert('O valor inicial não pode ser maior que o máximo ou menor que 0');
         return;
       }
 
-      const barData = { type, name, initial: initialValue, max: maxValue };
       const bar = createBar(type, name, initialValue, maxValue);
       container.appendChild(bar);
 
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.push(barData);
-      localStorage.setItem('bars', JSON.stringify(savedBars));
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      bars.push({ type, name, initial: initialValue, max: maxValue });
+      localStorage.setItem('bars', JSON.stringify(bars));
     }
 
     function removeBar(button) {
       const bar = button.closest('.bar');
-      const type = bar.dataset.type;
-      const name = bar.querySelector('input').value;
-
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.filter(barData => !(barData.type === type && barData.name === name));
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
-
       bar.remove();
+
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = bars.findIndex(b => b.name === bar.querySelector('input').value);
+      if (index !== -1) {
+        bars.splice(index, 1);
+      }
+      localStorage.setItem('bars', JSON.stringify(bars));
     }
 
     function adjustBar(button, value) {
       const bar = button.closest('.bar');
-      const barFill = bar.querySelector('.bar-fill');
-      const maxValue = parseInt(bar.dataset.max, 10);
-      let currentValue = parseInt(bar.dataset.current, 10);
+      const current = parseInt(bar.dataset.current);
+      const max = parseInt(bar.dataset.max);
 
-      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
-      bar.dataset.current = currentValue;
+      const newValue = Math.min(Math.max(current + value, 0), max);
+      bar.dataset.current = newValue;
 
-      const widthPercentage = (currentValue / maxValue) * 100;
-      barFill.style.width = `${widthPercentage}%`;
-      barFill.textContent = `${currentValue}/${maxValue}`;
+      const fill = bar.querySelector('.bar-fill');
+      fill.style.width = `${(newValue / max) * 100}%`;
+      fill.innerHTML = `${newValue}/${max}`;
 
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.map(barData => {
-        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input').value) {
-          barData.initial = currentValue;
-        }
-        return barData;
-      });
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = bars.findIndex(b => b.name === bar.querySelector('input').value);
+      if (index !== -1) {
+        bars[index].initial = newValue;
+        localStorage.setItem('bars', JSON.stringify(bars));
+      }
     }
 
     function updateBarName(input) {
       const bar = input.closest('.bar');
-      const type = bar.dataset.type;
-      const newName = input.value;
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = bars.findIndex(b => b.name === bar.querySelector('input').value);
 
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.map(barData => {
-        if (barData.type === type && barData.name === bar.querySelector('input').defaultValue) {
-          barData.name = newName;
-        }
-        return barData;
-      });
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
+      if (index !== -1) {
+        bars[index].name = input.value;
+        localStorage.setItem('bars', JSON.stringify(bars));
+      }
     }
   </script>
 </body>
