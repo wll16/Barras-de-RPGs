@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status e Login</title>
+  <title>Barras de Status - RPG</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -82,27 +82,6 @@
       font-size: 14px;
     }
 
-    /* Estilos dos formulários de login e registro */
-    .form-container {
-      display: none;
-      background-color: #333;
-      padding: 20px;
-      border-radius: 8px;
-      margin-top: 20px;
-      width: 250px; /* Largura mais compacta para os formulários */
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .form-container input {
-      margin: 10px 0;
-      width: 100%;
-    }
-
-    .form-container button {
-      background-color: #2196F3;
-    }
-
     .config-container {
       margin-top: 30px;
     }
@@ -148,7 +127,7 @@
       <option value="determinacao">Determinação</option>
       <option value="mana">Mana</option>
     </select>
-    <input type="text" id="bar-name" placeholder="Nome da Barra" />
+    <input type="text" id="bar-name" placeholder="Nome da Barra (opcional)" />
     <input type="number" id="initial-value" value="40" placeholder="Valor Inicial" min="0">
     <input type="number" id="max-value" value="100" placeholder="Valor Máximo" min="1">
     <button onclick="addBar()">Adicionar Barra</button>
@@ -218,16 +197,19 @@
       const bar = document.createElement('div');
       bar.className = 'bar';
       bar.dataset.max = max;
+      bar.dataset.initial = initial;
       bar.dataset.type = type;
       bar.innerHTML = `
-        <input type="text" value="${name}" onchange="updateBarName(this)" />
+        <input type="text" value="${name || type}" onchange="updateBarName(this)" />
         <div class="bar-inner">
           <div class="bar-fill ${type}" style="width: ${(initial / max) * 100}%">${initial}/${max}</div>
         </div>
         <button class="remove" onclick="removeBar(this)">Remover</button>
         <div>
-          <button class="increase" onclick="changeBarValue(this, 10)">+</button>
-          <button class="decrease" onclick="changeBarValue(this, -10)">-</button>
+          <button class="increase" onclick="changeBarValue(this, 5)">+5</button>
+          <button class="increase" onclick="changeBarValue(this, 1)">+1</button>
+          <button class="decrease" onclick="changeBarValue(this, -1)">-1</button>
+          <button class="decrease" onclick="changeBarValue(this, -5)">-5</button>
         </div>
       `;
       bar.dataset.current = initial;
@@ -257,17 +239,25 @@
       const barFill = bar.querySelector('.bar-fill');
       const current = parseInt(bar.dataset.current, 10);
       const max = parseInt(bar.dataset.max, 10);
+      const initial = parseInt(bar.dataset.initial, 10);
 
       let newValue = current + change;
 
-      // Limitar o valor para não ultrapassar o máximo nem cair abaixo de 0
-      if (newValue > max) newValue = max;
+      // Limitar o valor para não ultrapassar o valor inicial
+      if (newValue > initial) newValue = initial;
       if (newValue < 0) newValue = 0;
 
       bar.dataset.current = newValue;
       barFill.style.width = (newValue / max) * 100 + '%';
       barFill.textContent = `${newValue}/${max}`;
 
+      saveUserBars();
+    }
+
+    function updateBarName(input) {
+      const bar = input.closest('.bar');
+      const name = input.value;
+      bar.querySelector('.bar-name').textContent = name;
       saveUserBars();
     }
 
@@ -283,7 +273,7 @@
 
       const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
       const userIndex = storedUsers.findIndex(user => user.username === currentUser);
-      
+
       if (userIndex > -1) {
         storedUsers[userIndex].bars = bars;
         localStorage.setItem('users', JSON.stringify(storedUsers));
@@ -293,7 +283,7 @@
     function loadUserBars() {
       const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
       const user = storedUsers.find(user => user.username === currentUser);
-      
+
       if (user && user.bars) {
         user.bars.forEach(barData => {
           const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
