@@ -76,6 +76,11 @@
       border: 1px solid white;
       color: black;
     }
+
+    select {
+      width: 120px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -172,10 +177,10 @@
       const maxValue = parseInt(bar.dataset.max, 10);
       let currentValue = parseInt(bar.dataset.current, 10);
 
-      currentValue = Math.max(0, currentValue + value);
+      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
       bar.dataset.current = currentValue;
 
-      const widthPercentage = Math.min(100, (currentValue / maxValue) * 100);
+      const widthPercentage = (currentValue / maxValue) * 100;
       barFill.style.width = `${widthPercentage}%`;
       barFill.textContent = `${currentValue}/${maxValue}`;
 
@@ -206,3 +211,4 @@
   </script>
 </body>
 </html>
+
