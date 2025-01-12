@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barras de Status e Login</title>
   <style>
-    /* Estilos gerais */
     body {
       font-family: Arial, sans-serif;
       background-color: #1e1e1e;
@@ -13,7 +12,6 @@
       text-align: center;
     }
 
-    /* Container das barras de status */
     .container {
       display: flex;
       flex-wrap: wrap;
@@ -37,7 +35,6 @@
       border-radius: 5px;
       background-color: grey;
       overflow: hidden;
-      position: relative;
     }
 
     .bar-fill {
@@ -49,7 +46,6 @@
       transition: width 0.3s;
     }
 
-    /* Cores das barras */
     .vida { background-color: red; }
     .sanidade { background-color: blue; }
     .fe { background-color: gold; }
@@ -59,7 +55,6 @@
     .determinacao { background-color: #003366; }
     .mana { background-color: #1e90ff; }
 
-    /* Estilo dos botões */
     button {
       padding: 5px 10px;
       border: none;
@@ -74,34 +69,18 @@
       background-color: #f44336;
     }
 
-    /* Formulário de login e registro */
-    #login, #register {
-      margin-top: 50px;
-    }
-
-    #login h2, #register h2 {
-      color: white;
-    }
-
-    input {
+    input, select {
       padding: 5px;
       margin: 5px;
+      border-radius: 5px;
+      border: 1px solid white;
+      color: black;
     }
-
-    /* Inputs e selects */
-    input[name="bar-name"], select {
-      margin-bottom: 5px;
-      width: 90%;
-      text-align: center;
-      font-size: 14px;
-    }
-
   </style>
 </head>
 <body>
-  <h1>Barras de Status - RPG Personalizadas</h1>
+  <h1>Barras de Status - RPG</h1>
 
-  <!-- Configuração para adicionar barras -->
   <div>
     <label for="bar-type">Tipo de Barra:</label>
     <select id="bar-type">
@@ -114,91 +93,13 @@
       <option value="determinacao">Determinação</option>
       <option value="mana">Mana</option>
     </select>
-    <label for="bar-name">Nome:</label>
-    <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
-    <label for="initial-value">Inicial:</label>
-    <input type="number" id="initial-value" value="40" min="0">
-    <label for="max-value">Máximo:</label>
-    <input type="number" id="max-value" value="100" min="1">
+    <input type="text" id="bar-name" placeholder="Nome da Barra" />
+    <input type="number" id="initial-value" value="40" placeholder="Valor Inicial" min="0">
+    <input type="number" id="max-value" value="100" placeholder="Valor Máximo" min="1">
     <button onclick="addBar()">Adicionar Barra</button>
   </div>
 
-  <!-- Área onde as barras serão exibidas -->
   <div class="container" id="bar-container"></div>
-
-  <hr>
-
-  <!-- Formulário de Login -->
-  <div id="login">
-    <h2>Login</h2>
-    <label>Email: <input type="email" id="email" /></label><br />
-    <label>Senha: <input type="password" id="password" /></label><br />
-    <button onclick="login()">Entrar</button>
-    <button onclick="showRegisterForm()">Registrar</button>
-  </div>
-
-  <!-- Formulário de Registro -->
-  <div id="register" style="display: none;">
-    <h2>Registrar</h2>
-    <label>Email: <input type="email" id="register-email" /></label><br />
-    <label>Senha: <input type="password" id="register-password" /></label><br />
-    <button onclick="register()">Registrar</button>
-    <button onclick="showLoginForm()">Voltar</button>
-  </div>
-
-  <!-- Script Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_DOMINIO.firebaseapp.com",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_STORAGE_BUCKET",
-      messagingSenderId: "SEU_SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-
-    async function register() {
-      const email = document.getElementById("register-email").value;
-      const password = document.getElementById("register-password").value;
-
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Usuário registrado com sucesso!");
-        showLoginForm();
-      } catch (error) {
-        alert("Erro ao registrar: " + error.message);
-      }
-    }
-
-    async function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login realizado com sucesso!");
-      } catch (error) {
-        alert("Erro ao fazer login: " + error.message);
-      }
-    }
-
-    // Funções para alternar entre login e registro
-    function showLoginForm() {
-      document.getElementById('login').style.display = 'block';
-      document.getElementById('register').style.display = 'none';
-    }
-
-    function showRegisterForm() {
-      document.getElementById('login').style.display = 'none';
-      document.getElementById('register').style.display = 'block';
-    }
-  </script>
 
   <script>
     const container = document.getElementById('bar-container');
@@ -217,7 +118,7 @@
       bar.dataset.max = max;
       bar.dataset.type = type;
       bar.innerHTML = `
-        <input type="text" name="bar-name" value="${name}" onchange="updateBarName(this)" />
+        <input type="text" value="${name}" onchange="updateBarName(this)" />
         <div class="bar-inner">
           <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
         </div>
@@ -235,12 +136,12 @@
 
     function addBar() {
       const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
+      const name = document.getElementById('bar-name').value || type;
       const initialValue = parseInt(document.getElementById('initial-value').value);
       const maxValue = parseInt(document.getElementById('max-value').value);
 
-      if (initialValue < 0 || initialValue > maxValue || maxValue < 1) {
-        alert('Valor inicial não pode ser maior que o valor máximo!');
+      if (initialValue < 0 || initialValue > maxValue) {
+        alert('O valor inicial não pode ser maior que o valor máximo!');
         return;
       }
 
@@ -256,48 +157,50 @@
     function removeBar(button) {
       const bar = button.closest('.bar');
       const type = bar.dataset.type;
-      const name = bar.querySelector('input[name="bar-name"]').value;
+      const name = bar.querySelector('input').value;
 
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.filter(barData => barData.type !== type || barData.name !== name);
+      const updatedBars = savedBars.filter(barData => !(barData.type === type && barData.name === name));
       localStorage.setItem('bars', JSON.stringify(updatedBars));
 
-      container.removeChild(bar);
+      bar.remove();
     }
 
-    function adjustBar(button, change) {
+    function adjustBar(button, value) {
       const bar = button.closest('.bar');
-      const current = parseInt(bar.dataset.current);
-      const max = parseInt(bar.dataset.max);
-      const newCurrent = Math.min(Math.max(current + change, 0), max);
+      const barFill = bar.querySelector('.bar-fill');
+      const maxValue = parseInt(bar.dataset.max, 10);
+      let currentValue = parseInt(bar.dataset.current, 10);
 
-      bar.dataset.current = newCurrent;
-      bar.querySelector('.bar-fill').style.width = `${(newCurrent / max) * 100}%`;
-      bar.querySelector('.bar-fill').textContent = `${newCurrent}/${max}`;
+      currentValue = Math.max(0, currentValue + value);
+      bar.dataset.current = currentValue;
+
+      const widthPercentage = Math.min(100, (currentValue / maxValue) * 100);
+      barFill.style.width = `${widthPercentage}%`;
+      barFill.textContent = `${currentValue}/${maxValue}`;
 
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
       const updatedBars = savedBars.map(barData => {
-        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input[name="bar-name"]').value) {
-          barData.initial = newCurrent;
+        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input').value) {
+          barData.initial = currentValue;
         }
         return barData;
       });
-
       localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
 
     function updateBarName(input) {
       const bar = input.closest('.bar');
-      const name = input.value;
+      const type = bar.dataset.type;
+      const newName = input.value;
 
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
       const updatedBars = savedBars.map(barData => {
-        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input[name="bar-name"]').value) {
-          barData.name = name;
+        if (barData.type === type && barData.name === bar.querySelector('input').defaultValue) {
+          barData.name = newName;
         }
         return barData;
       });
-
       localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
   </script>
