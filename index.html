@@ -10,8 +10,6 @@
       background-color: #1e1e1e;
       color: white;
       text-align: center;
-      margin: 0;
-      padding: 0;
     }
 
     .container {
@@ -83,166 +81,132 @@
       width: 120px;
       font-size: 14px;
     }
-
-    /* Estilos para o formulário de login */
-    .login-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 50px;
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      border-radius: 10px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: none;
-      z-index: 100;
-    }
-
-    .login-container input {
-      width: 200px;
-      margin: 10px;
-    }
-
-    /* Ícone de login no canto */
-    .login-icon {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background-color: #4caf50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: white;
-      font-size: 24px;
-    }
   </style>
 </head>
 <body>
   <h1>Barras de Status - RPG</h1>
 
-  <!-- Ícone de login -->
-  <div class="login-icon" onclick="toggleLoginForm()">
-    <span>Login</span>
+  <div>
+    <label for="bar-type">Tipo de Barra:</label>
+    <select id="bar-type">
+      <option value="vida">Vida</option>
+      <option value="sanidade">Sanidade</option>
+      <option value="fe">Fé</option>
+      <option value="esforco">Esforço</option>
+      <option value="fome">Fome</option>
+      <option value="sede">Sede</option>
+      <option value="determinacao">Determinação</option>
+      <option value="mana">Mana</option>
+    </select>
+    <input type="text" id="bar-name" placeholder="Nome da Barra" />
+    <input type="number" id="initial-value" value="40" placeholder="Valor Inicial" min="0">
+    <input type="number" id="max-value" value="100" placeholder="Valor Máximo" min="1">
+    <button onclick="addBar()">Adicionar Barra</button>
   </div>
 
-  <!-- Formulário de Login -->
-  <div class="login-container" id="login-container">
-    <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Senha" />
-    <button onclick="login()">Login</button>
-    <button onclick="signup()">Criar Conta</button>
-    <button onclick="toggleLoginForm()">Fechar</button>
-  </div>
+  <div class="container" id="bar-container"></div>
 
-  <!-- Conteúdo de barras de status -->
-  <div id="status-container" style="display: none;">
-    <div>
-      <label for="bar-type">Tipo de Barra:</label>
-      <select id="bar-type">
-        <option value="vida">Vida</option>
-        <option value="sanidade">Sanidade</option>
-        <option value="fe">Fé</option>
-        <option value="esforco">Esforço</option>
-        <option value="fome">Fome</option>
-        <option value="sede">Sede</option>
-        <option value="determinacao">Determinação</option>
-        <option value="mana">Mana</option>
-      </select>
-      <input type="text" id="bar-name" placeholder="Nome da Barra" />
-      <input type="number" id="initial-value" value="40" placeholder="Valor Inicial" min="0">
-      <input type="number" id="max-value" value="100" placeholder="Valor Máximo" min="1">
-      <button onclick="addBar()">Adicionar Barra</button>
-    </div>
+  <script>
+    const container = document.getElementById('bar-container');
 
-    <div class="container" id="bar-container"></div>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyA8d4CwyD8cBFzijOBz42mhjSuiYVDNH-o",
-      authDomain: "teste-login-c1b1c.firebaseapp.com",
-      projectId: "teste-login-c1b1c",
-      storageBucket: "teste-login-c1b1c.firebasestorage.app",
-      messagingSenderId: "225514210479",
-      appId: "1:225514210479:web:1d097443558615bd15405a",
-      measurementId: "G-SQP027T0RV"
+    window.onload = function() {
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
+        container.appendChild(bar);
+      });
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-
-    // Função de login
-    function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          document.getElementById('login-container').style.display = 'none';
-          document.getElementById('status-container').style.display = 'block';
-        })
-        .catch((error) => {
-          alert('Erro ao fazer login: ' + error.message);
-        });
-    }
-
-    // Função de cadastro
-    function signup() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert('Conta criada com sucesso!');
-        })
-        .catch((error) => {
-          alert('Erro ao criar conta: ' + error.message);
-        });
-    }
-
-    // Função para alternar o formulário de login
-    function toggleLoginForm() {
-      const loginForm = document.getElementById('login-container');
-      loginForm.style.display = loginForm.style.display === 'none' ? 'block' : 'none';
-    }
-
-    // Função para adicionar uma nova barra
-    function addBar() {
-      const barType = document.getElementById('bar-type').value;
-      const barName = document.getElementById('bar-name').value;
-      const initialValue = document.getElementById('initial-value').value;
-      const maxValue = document.getElementById('max-value').value;
-
-      const barContainer = document.getElementById('bar-container');
-      const newBar = document.createElement('div');
-      newBar.classList.add('bar');
-      newBar.innerHTML = `
+    function createBar(type, name, initial, max) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.dataset.max = max;
+      bar.dataset.type = type;
+      bar.innerHTML = `
+        <input type="text" value="${name}" onchange="updateBarName(this)" />
         <div class="bar-inner">
-          <div class="bar-fill ${barType}" style="width: ${(initialValue / maxValue) * 100}%">
-            ${barName}: ${initialValue} / ${maxValue}
-          </div>
+          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
+        </div>
+        <div>
+          <button onclick="adjustBar(this, -5)">-5</button>
+          <button onclick="adjustBar(this, -1)">-1</button>
+          <button onclick="adjustBar(this, 1)">+1</button>
+          <button onclick="adjustBar(this, 5)">+5</button>
         </div>
         <button class="remove" onclick="removeBar(this)">Remover</button>
       `;
-      barContainer.appendChild(newBar);
+      bar.dataset.current = initial;
+      return bar;
     }
 
-    // Função para remover uma barra
+    function addBar() {
+      const type = document.getElementById('bar-type').value;
+      const name = document.getElementById('bar-name').value || type;
+      const initialValue = parseInt(document.getElementById('initial-value').value);
+      const maxValue = parseInt(document.getElementById('max-value').value);
+
+      if (initialValue < 0 || initialValue > maxValue) {
+        alert('O valor inicial não pode ser maior que o valor máximo!');
+        return;
+      }
+
+      const barData = { type, name, initial: initialValue, max: maxValue };
+      const bar = createBar(type, name, initialValue, maxValue);
+      container.appendChild(bar);
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.push(barData);
+      localStorage.setItem('bars', JSON.stringify(savedBars));
+    }
+
     function removeBar(button) {
-      const bar = button.parentElement;
+      const bar = button.closest('.bar');
+      const type = bar.dataset.type;
+      const name = bar.querySelector('input').value;
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const updatedBars = savedBars.filter(barData => !(barData.type === type && barData.name === name));
+      localStorage.setItem('bars', JSON.stringify(updatedBars));
+
       bar.remove();
+    }
+
+    function adjustBar(button, value) {
+      const bar = button.closest('.bar');
+      const barFill = bar.querySelector('.bar-fill');
+      const maxValue = parseInt(bar.dataset.max, 10);
+      let currentValue = parseInt(bar.dataset.current, 10);
+
+      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
+      bar.dataset.current = currentValue;
+
+      const widthPercentage = (currentValue / maxValue) * 100;
+      barFill.style.width = `${widthPercentage}%`;
+      barFill.textContent = `${currentValue}/${maxValue}`;
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const updatedBars = savedBars.map(barData => {
+        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input').value) {
+          barData.initial = currentValue;
+        }
+        return barData;
+      });
+      localStorage.setItem('bars', JSON.stringify(updatedBars));
+    }
+
+    function updateBarName(input) {
+      const bar = input.closest('.bar');
+      const type = bar.dataset.type;
+      const newName = input.value;
+
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const updatedBars = savedBars.map(barData => {
+        if (barData.type === type && barData.name === bar.querySelector('input').defaultValue) {
+          barData.name = newName;
+        }
+        return barData;
+      });
+      localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
   </script>
 </body>
