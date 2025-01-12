@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status - RPG</title>
+  <title>Barras de Status e Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -105,43 +105,37 @@
   </div>
 
   <div>
-    <label for="config-name">Nome da Configuração:</label>
-    <input type="text" id="config-name" placeholder="Nome da Configuração">
-    <button onclick="saveConfig()">Salvar Configuração</button>
-    <button onclick="loadConfig()">Carregar Configuração</button>
-    <button onclick="deleteConfig()">Excluir Configuração</button>
+    <h3>Configurações de Personagens</h3>
+    <label for="character-name">Nome do Personagem:</label>
+    <input type="text" id="character-name" placeholder="Nome do Personagem" />
+    <button onclick="saveConfiguration()">Salvar Configuração</button>
+
+    <h4>Carregar Configuração</h4>
+    <select id="saved-configurations"></select>
+    <button onclick="loadConfiguration()">Carregar</button>
   </div>
 
   <div class="container" id="bar-container"></div>
 
   <script>
     const container = document.getElementById('bar-container');
-    const configNameInput = document.getElementById('config-name');
+    const characterNameInput = document.getElementById('character-name');
+    const savedConfigSelect = document.getElementById('saved-configurations');
 
+    // Carregar configurações salvas
     window.onload = function() {
-      loadConfig();
+      loadSavedConfigurations();
     };
 
-    function createBar(type, name, initial, max) {
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.dataset.max = max;
-      bar.dataset.type = type;
-      bar.innerHTML = ` 
-        <input type="text" value="${name}" onchange="updateBarName(this)" />
-        <div class="bar-inner">
-          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
-        </div>
-        <div>
-          <button onclick="adjustBar(this, -5)">-5</button>
-          <button onclick="adjustBar(this, -1)">-1</button>
-          <button onclick="adjustBar(this, 1)">+1</button>
-          <button onclick="adjustBar(this, 5)">+5</button>
-        </div>
-        <button class="remove" onclick="removeBar(this)">Remover</button>
-      `;
-      bar.dataset.current = initial;
-      return bar;
+    function loadSavedConfigurations() {
+      const savedConfigs = JSON.parse(localStorage.getItem('configurations')) || [];
+      savedConfigSelect.innerHTML = '';
+      savedConfigs.forEach((config, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = config.name;
+        savedConfigSelect.appendChild(option);
+      });
     }
 
     function addBar() {
@@ -159,9 +153,36 @@
       const bar = createBar(type, name, initialValue, maxValue);
       container.appendChild(bar);
 
+      // Salvar nova barra no localStorage
+      saveBars(barData);
+    }
+
+    function saveBars(barData) {
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
       savedBars.push(barData);
       localStorage.setItem('bars', JSON.stringify(savedBars));
+    }
+
+    function createBar(type, name, initial, max) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.dataset.max = max;
+      bar.dataset.type = type;
+      bar.innerHTML = `
+        <input type="text" value="${name}" onchange="updateBarName(this)" />
+        <div class="bar-inner">
+          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
+        </div>
+        <div>
+          <button onclick="adjustBar(this, -5)">-5</button>
+          <button onclick="adjustBar(this, -1)">-1</button>
+          <button onclick="adjustBar(this, 1)">+1</button>
+          <button onclick="adjustBar(this, 5)">+5</button>
+        </div>
+        <button class="remove" onclick="removeBar(this)">Remover</button>
+      `;
+      bar.dataset.current = initial;
+      return bar;
     }
 
     function removeBar(button) {
@@ -199,72 +220,40 @@
       localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
 
-    function updateBarName(input) {
-      const bar = input.closest('.bar');
-      const type = bar.dataset.type;
-      const newName = input.value;
-
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.map(barData => {
-        if (barData.type === type && barData.name === bar.querySelector('input').defaultValue) {
-          barData.name = newName;
-        }
-        return barData;
-      });
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
-    }
-
-    function saveConfig() {
-      const configName = configNameInput.value.trim();
-      if (!configName) {
-        alert("Digite um nome para a configuração.");
+    function saveConfiguration() {
+      const characterName = characterNameInput.value;
+      if (!characterName) {
+        alert('Por favor, insira o nome do personagem.');
         return;
       }
 
-      const barsData = Array.from(container.querySelectorAll('.bar')).map(bar => {
-        return {
-          type: bar.dataset.type,
-          name: bar.querySelector('input').value,
-          initial: parseInt(bar.dataset.current),
-          max: parseInt(bar.dataset.max),
-        };
+      const bars = JSON.parse(localStorage.getItem('bars')) || [];
+      const config = {
+        name: characterName,
+        bars: bars
+      };
+
+      const savedConfigs = JSON.parse(localStorage.getItem('configurations')) || [];
+      savedConfigs.push(config);
+      localStorage.setItem('configurations', JSON.stringify(savedConfigs));
+
+      loadSavedConfigurations();
+    }
+
+    function loadConfiguration() {
+      const selectedConfigIndex = savedConfigSelect.value;
+      if (selectedConfigIndex === "") return;
+
+      const savedConfigs = JSON.parse(localStorage.getItem('configurations')) || [];
+      const config = savedConfigs[selectedConfigIndex];
+
+      // Limpar todas as barras antes de carregar a nova configuração
+      container.innerHTML = '';
+
+      config.bars.forEach(barData => {
+        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
+        container.appendChild(bar);
       });
-
-      const savedConfigs = JSON.parse(localStorage.getItem('configs')) || {};
-      savedConfigs[configName] = barsData;
-      localStorage.setItem('configs', JSON.stringify(savedConfigs));
-
-      alert("Configuração salva!");
-    }
-
-    function loadConfig() {
-      const configName = configNameInput.value.trim();
-      const savedConfigs = JSON.parse(localStorage.getItem('configs')) || {};
-
-      if (savedConfigs[configName]) {
-        container.innerHTML = ''; // Clear current bars
-        savedConfigs[configName].forEach(barData => {
-          const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-          container.appendChild(bar);
-        });
-      } else {
-        alert("Configuração não encontrada.");
-      }
-    }
-
-    function deleteConfig() {
-      const configName = configNameInput.value.trim();
-      const savedConfigs = JSON.parse(localStorage.getItem('configs')) || {};
-
-      if (savedConfigs[configName]) {
-        delete savedConfigs[configName];
-        localStorage.setItem('configs', JSON.stringify(savedConfigs));
-
-        alert("Configuração excluída.");
-        container.innerHTML = ''; // Clear bars
-      } else {
-        alert("Configuração não encontrada.");
-      }
     }
   </script>
 </body>
