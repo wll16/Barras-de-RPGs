@@ -81,10 +81,49 @@
       width: 120px;
       font-size: 14px;
     }
+
+    /* Estilos dos formulários de login e registro */
+    .form-container {
+      display: none;
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .form-container input {
+      margin: 10px 0;
+      width: 100%;
+    }
+
+    .form-container button {
+      background-color: #2196F3;
+    }
+
   </style>
 </head>
 <body>
   <h1>Barras de Status - RPG</h1>
+
+  <!-- Botões para exibir o formulário de Login e Registro -->
+  <button onclick="toggleLoginForm()">Login</button>
+  <button onclick="toggleRegisterForm()">Registrar</button>
+
+  <!-- Formulário de Login -->
+  <div id="login-form" class="form-container">
+    <h2>Login</h2>
+    <input type="text" id="login-username" placeholder="Nome de usuário">
+    <input type="password" id="login-password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <!-- Formulário de Registro -->
+  <div id="register-form" class="form-container">
+    <h2>Registrar</h2>
+    <input type="text" id="register-username" placeholder="Nome de usuário">
+    <input type="password" id="register-password" placeholder="Senha">
+    <button onclick="register()">Registrar</button>
+  </div>
 
   <div>
     <label for="bar-type">Tipo de Barra:</label>
@@ -109,13 +148,19 @@
   <script>
     const container = document.getElementById('bar-container');
 
-    window.onload = function() {
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.forEach(barData => {
-        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-        container.appendChild(bar);
-      });
-    };
+    // Função para alternar a exibição do formulário de login
+    function toggleLoginForm() {
+      const loginForm = document.getElementById('login-form');
+      loginForm.style.display = (loginForm.style.display === 'block') ? 'none' : 'block';
+      document.getElementById('register-form').style.display = 'none'; // Esconde o formulário de registro
+    }
+
+    // Função para alternar a exibição do formulário de registro
+    function toggleRegisterForm() {
+      const registerForm = document.getElementById('register-form');
+      registerForm.style.display = (registerForm.style.display === 'block') ? 'none' : 'block';
+      document.getElementById('login-form').style.display = 'none'; // Esconde o formulário de login
+    }
 
     function createBar(type, name, initial, max) {
       const bar = document.createElement('div');
