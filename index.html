@@ -84,20 +84,22 @@
     </div>
 
     <script>
-        let users = {};
-        let currentUser = null;
+        let users = {}; // Armazena os usuários e suas barras
+        let currentUser = null; // Usuário atualmente logado
 
+        // Função para alternar a visibilidade dos HUDs
         function toggleHUD(hudId) {
             document.querySelectorAll('div[id$="HUD"]').forEach(hud => hud.style.display = 'none');
             document.getElementById(hudId).style.display = 'block';
         }
 
+        // Registro de usuários
         function register() {
-            const name = document.getElementById('registerName').value;
+            const name = document.getElementById('registerName').value.trim();
             const password = document.getElementById('registerPassword').value;
 
-            if (password.length !== 4) {
-                alert("A senha deve ter exatamente 4 dígitos.");
+            if (!name || password.length !== 4) {
+                alert("Preencha corretamente os campos. A senha deve ter 4 dígitos.");
                 return;
             }
             if (users[name]) {
@@ -109,8 +111,9 @@
             alert("Usuário registrado com sucesso!");
         }
 
+        // Login de usuários
         function login() {
-            const name = document.getElementById('loginName').value;
+            const name = document.getElementById('loginName').value.trim();
             const password = document.getElementById('loginPassword').value;
 
             if (users[name] && users[name].password === password) {
@@ -123,38 +126,14 @@
             }
         }
 
-        function addBar() {
-            if (!currentUser) {
-                alert("Faça login para adicionar barras.");
-                return;
-            }
-
-            const barName = prompt("Nome da barra (ex: Vida, Mana):");
-            const bar = {
-                name: barName || `Barra ${users[currentUser].bars.length + 1}`,
-                current: 50,
-                max: 100
-            };
-            users[currentUser].bars.push(bar);
-            renderBars();
-        }
-
+        // Carrega as barras do usuário atual
         function loadUserBars() {
             if (currentUser) {
                 renderBars();
             }
         }
 
-        function saveUserBars() {
-            if (currentUser) {
-                users[currentUser].bars = Array.from(document.querySelectorAll('.bar')).map(bar => ({
-                    name: bar.querySelector('.bar-name').textContent,
-                    current: parseInt(bar.dataset.current, 10),
-                    max: parseInt(bar.dataset.max, 10)
-                }));
-            }
-        }
-
+        // Renderiza as barras
         function renderBars() {
             const container = document.getElementById('barsContainer');
             container.innerHTML = '';
@@ -169,43 +148,44 @@
                         </div>
                     </div>
                     <div class="bar-buttons">
-                        <button data-change="-5">-5</button>
-                        <button data-change="-1">-1</button>
-                        <button data-change="+1">+1</button>
-                        <button data-change="+5">+5</button>
+                        <button onclick="updateBarValue(${index}, -5)">-5</button>
+                        <button onclick="updateBarValue(${index}, -1)">-1</button>
+                        <button onclick="updateBarValue(${index}, 1)">+1</button>
+                        <button onclick="updateBarValue(${index}, 5)">+5</button>
                     </div>
                     <div class="bar-buttons">
                         <button onclick="changeMax(${index}, -5)">Máximo -5</button>
-                        <button onclick="changeMax(${index}, +5)">Máximo +5</button>
+                        <button onclick="changeMax(${index}, 5)">Máximo +5</button>
                     </div>
                     <span class="bar-name">${bar.name}</span>
                 `;
-
-                barDiv.querySelectorAll('button[data-change]').forEach(button => {
-                    button.addEventListener('click', () => updateBarValue(button));
-                });
-
                 container.appendChild(barDiv);
             });
         }
 
-        function updateBarValue(button) {
-            const bar = button.closest('.bar');
-            const barFill = bar.querySelector('.bar-fill');
-            const current = parseInt(bar.dataset.current, 10);
-            const change = parseInt(button.dataset.change, 10);
-
-            let newValue = current + change;
-            bar.dataset.current = newValue;
-            barFill.style.width = Math.min((newValue / bar.dataset.max) * 100, 100) + '%';
-            barFill.textContent = `${newValue}/${bar.dataset.max}`;
-
-            saveUserBars();
+        // Atualiza o valor atual da barra
+        function updateBarValue(index, change) {
+            const bar = users[currentUser].bars[index];
+            bar.current += change;
+            renderBars();
         }
 
+        // Atualiza o valor máximo da barra
         function changeMax(index, change) {
             const bar = users[currentUser].bars[index];
-            bar.max = Math.max(1, bar.max + change); // Máximo nunca pode ser menor que 1
+            bar.max = Math.max(1, bar.max + change);
+            renderBars();
+        }
+
+        // Adiciona uma nova barra
+        function addBar() {
+            if (!currentUser) {
+                alert("Faça login para adicionar barras.");
+                return;
+            }
+
+            const barName = prompt("Nome da barra (ex: Vida, Mana):") || `Barra ${users[currentUser].bars.length + 1}`;
+            users[currentUser].bars.push({ name: barName, current: 50, max: 100 });
             renderBars();
         }
     </script>
