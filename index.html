@@ -1,296 +1,213 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barras de Status - RPG</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #121212; /* Cor de fundo escura */
-      color: white;
-      text-align: center;
-    }
-
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .bar {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border: 2px solid white;
-      border-radius: 5px;
-      padding: 5px;
-      background-color: #2e2e2e; /* Cor de fundo das barras */
-    }
-
-    .bar-inner {
-      width: 100%;
-      height: 20px;
-      border-radius: 5px;
-      background-color: grey;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      text-align: center;
-      color: black;
-      font-size: 12px;
-      font-weight: bold;
-      transition: width 0.3s;
-    }
-
-    .vida { background-color: red; }
-    .sanidade { background-color: blue; }
-    .fe { background-color: gold; }
-    .esforco { background-color: yellow; }
-    .fome { background-color: #ff7f00; }
-    .sede { background-color: #00bfff; }
-    .determinacao { background-color: #003366; }
-    .mana { background-color: #1e90ff; }
-
-    button {
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      background-color: #4caf50;
-      color: white;
-    }
-
-    button.remove {
-      background-color: #f44336;
-    }
-
-    input, select {
-      padding: 5px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid white;
-      color: black;
-    }
-
-    select {
-      width: 120px;
-      font-size: 14px;
-    }
-
-    .config-container {
-      margin-top: 30px;
-    }
-
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barra de Configuração</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .button-container {
+            margin: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            background-color: #1f1f1f;
+            color: white;
+            border: 1px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #333333;
+        }
+        .bar-container {
+            margin: 10px 0;
+            width: 80%;
+        }
+        .bar {
+            width: 100%;
+            background-color: #333;
+            border: 1px solid white;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            height: 30px;
+        }
+        .bar-fill {
+            height: 100%;
+            background-color: #00bcd4;
+            text-align: center;
+            line-height: 30px;
+            white-space: nowrap;
+            transition: width 0.2s;
+        }
+        .bar-buttons {
+            margin-top: 5px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>Barras de Status - RPG</h1>
+    <div class="button-container">
+        <button onclick="toggleHUD('loginHUD')">Login</button>
+        <button onclick="toggleHUD('registerHUD')">Registrar</button>
+        <button onclick="toggleHUD('configHUD')">Configurações</button>
+    </div>
 
-  <!-- Botões para exibir o formulário de Login e Registro -->
-  <button onclick="toggleLoginForm()">Login</button>
-  <button onclick="toggleRegisterForm()">Registrar</button>
+    <!-- HUDs -->
+    <div id="loginHUD" style="display:none;">
+        <h2>Login</h2>
+        <input type="text" id="loginName" placeholder="Nome de Usuário">
+        <input type="password" id="loginPassword" placeholder="Senha">
+        <button onclick="login()">Entrar</button>
+    </div>
+    <div id="registerHUD" style="display:none;">
+        <h2>Registrar</h2>
+        <input type="text" id="registerName" placeholder="Nome de Usuário">
+        <input type="password" id="registerPassword" placeholder="Senha (4 dígitos)">
+        <button onclick="register()">Registrar</button>
+    </div>
+    <div id="configHUD" style="display:none;">
+        <h2>Configurações</h2>
+        <div id="barsContainer"></div>
+        <button onclick="addBar()">Adicionar Barra</button>
+    </div>
 
-  <!-- Formulário de Login -->
-  <div id="login-form" class="form-container">
-    <h2>Login</h2>
-    <input type="text" id="login-username" placeholder="Nome de usuário">
-    <input type="password" id="login-password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
-    <p id="login-error" style="color: red; display: none;">Nome de usuário ou senha incorretos.</p>
-  </div>
+    <script>
+        let users = {};
+        let currentUser = null;
 
-  <!-- Formulário de Registro -->
-  <div id="register-form" class="form-container">
-    <h2>Registrar</h2>
-    <input type="text" id="register-username" placeholder="Nome de usuário">
-    <input type="password" id="register-password" placeholder="Senha">
-    <button onclick="register()">Registrar</button>
-    <p id="register-success" style="color: green; display: none;">Usuário registrado com sucesso!</p>
-    <p id="register-error" style="color: red; display: none;">Erro ao registrar usuário.</p>
-  </div>
+        // HUD toggle function
+        function toggleHUD(hudId) {
+            document.querySelectorAll('div[id$="HUD"]').forEach(hud => hud.style.display = 'none');
+            document.getElementById(hudId).style.display = 'block';
+        }
 
-  <div class="config-container" id="config-container" style="display: none;">
-    <h2>Configurações</h2>
-    <label for="bar-type">Tipo de Barra:</label>
-    <select id="bar-type">
-      <option value="vida">Vida</option>
-      <option value="sanidade">Sanidade</option>
-      <option value="fe">Fé</option>
-      <option value="esforco">Esforço</option>
-      <option value="fome">Fome</option>
-      <option value="sede">Sede</option>
-      <option value="determinacao">Determinação</option>
-      <option value="mana">Mana</option>
-    </select>
-    <input type="text" id="bar-name" placeholder="Nome da Barra (opcional)" />
-    <input type="number" id="initial-value" value="40" placeholder="Valor Inicial" min="0">
-    <input type="number" id="max-value" value="100" placeholder="Valor Máximo" min="1">
-    <button onclick="addBar()">Adicionar Barra</button>
-    
-    <div id="bar-container" class="container"></div>
-  </div>
+        // Register function
+        function register() {
+            const name = document.getElementById('registerName').value;
+            const password = document.getElementById('registerPassword').value;
 
-  <script>
-    let currentUser = null;
+            if (password.length !== 4) {
+                alert("A senha deve ter exatamente 4 dígitos.");
+                return;
+            }
+            if (users[name]) {
+                alert("Usuário já registrado.");
+                return;
+            }
 
-    // Função para alternar a exibição do formulário de login
-    function toggleLoginForm() {
-      const loginForm = document.getElementById('login-form');
-      loginForm.style.display = (loginForm.style.display === 'block') ? 'none' : 'block';
-      document.getElementById('register-form').style.display = 'none'; // Esconde o formulário de registro
-    }
+            users[name] = { password, bars: [] };
+            alert("Usuário registrado com sucesso!");
+        }
 
-    // Função para alternar a exibição do formulário de registro
-    function toggleRegisterForm() {
-      const registerForm = document.getElementById('register-form');
-      registerForm.style.display = (registerForm.style.display === 'block') ? 'none' : 'block';
-      document.getElementById('login-form').style.display = 'none'; // Esconde o formulário de login
-    }
+        // Login function
+        function login() {
+            const name = document.getElementById('loginName').value;
+            const password = document.getElementById('loginPassword').value;
 
-    // Função para realizar login
-    function login() {
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
-      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+            if (users[name] && users[name].password === password) {
+                currentUser = name;
+                alert(`Bem-vindo, ${name}!`);
+                loadUserBars();
+                toggleHUD('configHUD');
+            } else {
+                alert("Usuário ou senha incorretos.");
+            }
+        }
 
-      const user = storedUsers.find(user => user.username === username && user.password === password);
+        // Add a new bar
+        function addBar() {
+            if (!currentUser) {
+                alert("Faça login para adicionar barras.");
+                return;
+            }
 
-      if (user) {
-        currentUser = username;
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('register-form').style.display = 'none';
-        document.getElementById('config-container').style.display = 'block';
-        loadUserBars();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-      }
-    }
+            const barName = prompt("Nome da barra:");
+            const bar = {
+                name: barName || `Barra ${users[currentUser].bars.length + 1}`,
+                current: 50,
+                max: 100
+            };
+            users[currentUser].bars.push(bar);
+            renderBars();
+        }
 
-    // Função para registrar um novo usuário
-    function register() {
-      const username = document.getElementById('register-username').value;
-      const password = document.getElementById('register-password').value;
-      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+        // Load user bars
+        function loadUserBars() {
+            if (currentUser) {
+                renderBars();
+            }
+        }
 
-      if (storedUsers.some(user => user.username === username)) {
-        document.getElementById('register-error').style.display = 'block';
-        return;
-      }
+        // Save user bars
+        function saveUserBars() {
+            if (currentUser) {
+                users[currentUser].bars = Array.from(document.querySelectorAll('.bar')).map(bar => ({
+                    name: bar.querySelector('.bar-name').textContent,
+                    current: parseInt(bar.dataset.current, 10),
+                    max: parseInt(bar.dataset.max, 10)
+                }));
+            }
+        }
 
-      const newUser = { username, password };
-      storedUsers.push(newUser);
-      localStorage.setItem('users', JSON.stringify(storedUsers));
+        // Render all bars
+        function renderBars() {
+            const container = document.getElementById('barsContainer');
+            container.innerHTML = '';
+            users[currentUser].bars.forEach((bar, index) => {
+                const barDiv = document.createElement('div');
+                barDiv.className = 'bar-container';
 
-      document.getElementById('register-success').style.display = 'block';
-      setTimeout(() => {
-        document.getElementById('register-form').style.display = 'none';
-        toggleLoginForm();
-      }, 2000);
-    }
+                barDiv.innerHTML = `
+                    <div class="bar" data-current="${bar.current}" data-max="${bar.max}">
+                        <div class="bar-fill" style="width: ${(bar.current / bar.max) * 100}%;">
+                            <span>${bar.current}/${bar.max}</span>
+                        </div>
+                    </div>
+                    <div class="bar-buttons">
+                        <button data-change="-5">-5</button>
+                        <button data-change="-1">-1</button>
+                        <button data-change="+1">+1</button>
+                        <button data-change="+5">+5</button>
+                    </div>
+                    <span class="bar-name">${bar.name}</span>
+                `;
 
-    function createBar(type, name, initial, max) {
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.dataset.max = max;
-      bar.dataset.initial = initial;
-      bar.dataset.type = type;
-      bar.innerHTML = `
-        <input type="text" value="${name || type}" onchange="updateBarName(this)" />
-        <div class="bar-inner">
-          <div class="bar-fill ${type}" style="width: ${(initial / max) * 100}%">${initial}/${max}</div>
-        </div>
-        <button class="remove" onclick="removeBar(this)">Remover</button>
-        <div>
-          <button class="decrease" onclick="changeBarValue(this, -5)">-5</button>
-          <button class="decrease" onclick="changeBarValue(this, -1)">-1</button>
-          <button class="increase" onclick="changeBarValue(this, 1)">+1</button>
-          <button class="increase" onclick="changeBarValue(this, 5)">+5</button>
-        </div>
-      `;
-      bar.dataset.current = initial;
-      return bar;
-    }
+                barDiv.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', () => updateBarValue(button));
+                });
 
-    function addBar() {
-      const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value;
-      const initialValue = parseInt(document.getElementById('initial-value').value, 10);
-      const maxValue = parseInt(document.getElementById('max-value').value, 10);
+                container.appendChild(barDiv);
+            });
+        }
 
-      const newBar = createBar(type, name, initialValue, maxValue);
-      const barContainer = document.getElementById('bar-container');
-      barContainer.appendChild(newBar);
+        // Update bar value
+        function updateBarValue(button) {
+            const bar = button.closest('.bar');
+            const barFill = bar.querySelector('.bar-fill');
+            const current = parseInt(bar.dataset.current, 10);
+            const change = parseInt(button.dataset.change, 10);
 
-      saveUserBars();
-    }
+            let newValue = current + change;
 
-    function removeBar(button) {
-      button.closest('.bar').remove();
-      saveUserBars();
-    }
+            // Permitir valores maiores que o máximo
+            bar.dataset.current = newValue;
+            barFill.style.width = Math.min((newValue / bar.dataset.max) * 100, 100) + '%';
+            barFill.textContent = `${newValue}/${bar.dataset.max}`;
 
-    function changeBarValue(button, change) {
-      const bar = button.closest('.bar');
-      const barFill = bar.querySelector('.bar-fill');
-      const current = parseInt(bar.dataset.current, 10);
-      const max = parseInt(bar.dataset.max, 10);
-      const initial = parseInt(bar.dataset.initial, 10);
-
-      let newValue = current + change;
-
-      // Limitar o valor para não ultrapassar o valor inicial
-      if (newValue > initial) newValue = initial;
-      if (newValue < 0) newValue = 0;
-
-      bar.dataset.current = newValue;
-      barFill.style.width = (newValue / max) * 100 + '%';
-      barFill.textContent = `${newValue}/${max}`;
-
-      saveUserBars();
-    }
-
-    function updateBarName(input) {
-      const bar = input.closest('.bar');
-      const name = input.value;
-      bar.querySelector('.bar-name').textContent = name;
-      saveUserBars();
-    }
-
-    function saveUserBars() {
-      if (!currentUser) return;
-
-      const bars = Array.from(document.querySelectorAll('.bar')).map(bar => ({
-        type: bar.dataset.type,
-        name: bar.querySelector('input').value,
-        initial: parseInt(bar.querySelector('.bar-fill').textContent.split('/')[0], 10),
-        max: parseInt(bar.dataset.max, 10)
-      }));
-
-      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
-      const userIndex = storedUsers.findIndex(user => user.username === currentUser);
-
-      if (userIndex > -1) {
-        storedUsers[userIndex].bars = bars;
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-      }
-    }
-
-    function loadUserBars() {
-      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
-      const user = storedUsers.find(user => user.username === currentUser);
-
-      if (user && user.bars) {
-        user.bars.forEach(barData => {
-          const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-          document.getElementById('bar-container').appendChild(bar);
-        });
-      }
-    }
-  </script>
+            saveUserBars();
+        }
+    </script>
 </body>
 </html>
