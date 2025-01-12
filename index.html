@@ -176,7 +176,7 @@
       bar.innerHTML = `
         <input type="text" value="${name}" onchange="updateBarName(this)" />
         <div class="bar-inner">
-          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
+          <div class="bar-fill ${type}" style="width: ${(initial / max) * 100}%;">${initial}/${max}</div>
         </div>
         <div>
           <button onclick="adjustBar(this, -5)">-5</button>
@@ -196,8 +196,8 @@
       const initialValue = parseInt(document.getElementById('initial-value').value);
       const maxValue = parseInt(document.getElementById('max-value').value);
 
-      if (initialValue < 0 || initialValue > maxValue) {
-        alert('O valor inicial não pode ser maior que o valor máximo!');
+      if (initialValue < 0) {
+        alert('O valor inicial não pode ser negativo!');
         return;
       }
 
@@ -226,30 +226,26 @@
       const bar = button.closest('.bar');
       const barFill = bar.querySelector('.bar-fill');
       const maxValue = parseInt(bar.dataset.max, 10);
-      let currentValue = parseInt(bar.dataset.current, 10);
+      let currentValue = parseInt(bar.dataset.current, 10) + value;
 
-      currentValue = Math.max(0, Math.min(maxValue, currentValue + value));
+      // Permitir que o valor ultrapasse o máximo (vida temporária)
+      if (currentValue < 0) currentValue = 0;
+      
+      // Atualizando o valor da barra
+      if (currentValue > maxValue) {
+        currentValue = maxValue + (currentValue - maxValue); // Exceder o máximo
+      }
+      
       bar.dataset.current = currentValue;
-
-      const widthPercentage = (currentValue / maxValue) * 100;
-      barFill.style.width = `${widthPercentage}%`;
+      barFill.style.width = (currentValue / maxValue) * 100 + '%';
       barFill.textContent = `${currentValue}/${maxValue}`;
-
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const updatedBars = savedBars.map(barData => {
-        if (barData.type === bar.dataset.type && barData.name === bar.querySelector('input').value) {
-          barData.initial = currentValue;
-        }
-        return barData;
-      });
-      localStorage.setItem('bars', JSON.stringify(updatedBars));
     }
 
     function updateBarName(input) {
+      const newName = input.value;
       const bar = input.closest('.bar');
       const type = bar.dataset.type;
-      const newName = input.value;
-
+      
       const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
       const updatedBars = savedBars.map(barData => {
         if (barData.type === type && barData.name === input.defaultValue) {
@@ -258,38 +254,6 @@
         return barData;
       });
       localStorage.setItem('bars', JSON.stringify(updatedBars));
-    }
-
-    // Função de Login
-    function login() {
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
-      const users = JSON.parse(localStorage.getItem('users')) || [];
-
-      const user = users.find(u => u.username === username && u.password === password);
-      if (user) {
-        document.getElementById('login-form').style.display = 'none';
-        alert('Login bem-sucedido!');
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-      }
-    }
-
-    // Função de Registro
-    function register() {
-      const username = document.getElementById('register-username').value;
-      const password = document.getElementById('register-password').value;
-
-      const users = JSON.parse(localStorage.getItem('users')) || [];
-      if (users.find(u => u.username === username)) {
-        alert('Usuário já existe!');
-        return;
-      }
-
-      users.push({ username, password });
-      localStorage.setItem('users', JSON.stringify(users));
-      document.getElementById('register-form').style.display = 'none';
-      alert('Usuário registrado com sucesso!');
     }
 
     // Carregar barras ao iniciar
