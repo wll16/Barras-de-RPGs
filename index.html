@@ -225,6 +225,10 @@
           <div class="bar-fill ${type}" style="width: ${(initial / max) * 100}%">${initial}/${max}</div>
         </div>
         <button class="remove" onclick="removeBar(this)">Remover</button>
+        <div>
+          <button class="increase" onclick="changeBarValue(this, 10)">+</button>
+          <button class="decrease" onclick="changeBarValue(this, -10)">-</button>
+        </div>
       `;
       bar.dataset.current = initial;
       return bar;
@@ -245,6 +249,25 @@
 
     function removeBar(button) {
       button.closest('.bar').remove();
+      saveUserBars();
+    }
+
+    function changeBarValue(button, change) {
+      const bar = button.closest('.bar');
+      const barFill = bar.querySelector('.bar-fill');
+      const current = parseInt(bar.dataset.current, 10);
+      const max = parseInt(bar.dataset.max, 10);
+
+      let newValue = current + change;
+
+      // Limitar o valor para não ultrapassar o máximo nem cair abaixo de 0
+      if (newValue > max) newValue = max;
+      if (newValue < 0) newValue = 0;
+
+      bar.dataset.current = newValue;
+      barFill.style.width = (newValue / max) * 100 + '%';
+      barFill.textContent = `${newValue}/${max}`;
+
       saveUserBars();
     }
 
