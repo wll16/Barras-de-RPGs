@@ -3,287 +3,247 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login, Registro e Barras de Status - RPG</title>
+  <title>Barra de Status com Login e Registro</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #1e1e1e;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+    .login-register-container, .hud-container {
+      display: none;
+    }
+    .bar {
+      width: 100%;
+      background-color: #ddd;
+      margin: 10px 0;
+      position: relative;
+      height: 30px;
+      border-radius: 5px;
+    }
+    .bar-fill {
+      height: 100%;
+      background-color: #4caf50;
+      text-align: center;
       color: white;
+      line-height: 30px;
+      border-radius: 5px;
+    }
+    .bar-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .bar-buttons button {
+      padding: 5px 10px;
+      font-size: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .bar-buttons button:hover {
+      background-color: #0056b3;
+    }
+    .bar-name {
+      flex-grow: 1;
+      margin-right: 10px;
+      font-size: 14px;
+      border: none;
+      background: none;
+      text-align: left;
+      color: #333;
+    }
+    .login-register-container, .hud-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       text-align: center;
     }
-    input {
+    input, button {
       padding: 10px;
-      margin: 10px;
-      border-radius: 5px;
+      margin: 5px;
+      font-size: 16px;
       border: 1px solid #ccc;
-      width: 200px;
+      border-radius: 5px;
     }
     button {
-      padding: 10px 20px;
-      border-radius: 5px;
-      border: none;
-      background-color: #4caf50;
+      background-color: #007bff;
       color: white;
       cursor: pointer;
     }
     button:hover {
-      background-color: #45a049;
-    }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-    .bar {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border: 2px solid white;
-      border-radius: 5px;
-      padding: 5px;
-      background-color: #2e2e2e;
-    }
-    .bar-inner {
-      width: 100%;
-      height: 20px;
-      border-radius: 5px;
-      background-color: grey;
-      overflow: hidden;
-      position: relative;
-    }
-    .bar-fill {
-      height: 100%;
-      text-align: center;
-      color: black;
-      font-size: 12px;
-      font-weight: bold;
-      transition: width 0.3s;
-    }
-    .vida { background-color: red; }
-    .sanidade { background-color: blue; }
-    .fe { background-color: gold; }
-    .esforco { background-color: yellow; }
-    .fome { background-color: #ff7f00; }
-    .sede { background-color: #00bfff; }
-    .determinacao { background-color: #003366; }
-    .mana { background-color: #1e90ff; }
-    button.remove {
-      background-color: #f44336;
-    }
-    input[name="bar-name"] {
-      margin-bottom: 5px;
-      width: 90%;
-      text-align: center;
-      font-size: 14px;
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <!-- Login Section -->
-  <div id="login-section">
-    <h1>Login</h1>
-    <form id="loginForm">
-      <input type="text" id="loginUsername" placeholder="Nome de Usuário" required>
-      <input type="password" id="loginPassword" placeholder="Senha" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <p>Não tem uma conta? <a href="javascript:void(0);" onclick="showRegister()">Registrar-se</a></p>
-  </div>
-
-  <!-- Register Section -->
-  <div id="register-section" style="display: none;">
-    <h1>Registrar</h1>
-    <form id="registerForm">
-      <input type="text" id="registerUsername" placeholder="Nome de Usuário" required>
-      <input type="password" id="registerPassword" placeholder="Senha" required>
-      <button type="submit">Registrar</button>
-    </form>
-    <p>Já tem uma conta? <a href="javascript:void(0);" onclick="showLogin()">Fazer login</a></p>
-  </div>
-
-  <!-- Dashboard Section -->
-  <div id="dashboard-section" style="display: none;">
-    <h1>Barras de Status - RPG</h1>
-    
-    <div>
-      <label for="bar-type">Tipo de Barra:</label>
-      <select id="bar-type">
-        <option value="vida" style="color:red;">Vida</option>
-        <option value="sanidade" style="color:blue;">Sanidade</option>
-        <option value="fe" style="color:gold;">Fé</option>
-        <option value="esforco" style="color:yellow;">Esforço</option>
-        <option value="fome" style="color:orange;">Fome</option>
-        <option value="sede" style="color:lightblue;">Sede</option>
-        <option value="determinacao" style="color:darkblue;">Determinação</option>
-        <option value="mana" style="color:deepskyblue;">Mana</option>
-      </select>
-      <label for="bar-name">Nome:</label>
-      <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
-      <label for="initial-value">Inicial:</label>
-      <input type="number" id="initial-value" value="40" min="0">
-      <label for="max-value">Máximo:</label>
-      <input type="number" id="max-value" value="100" min="1">
-      <button onclick="addBar()">Adicionar Barra</button>
+  <!-- Login/Registro -->
+  <div class="login-register-container" id="login-register-container">
+    <div class="login-form">
+      <h2>Login</h2>
+      <input type="text" id="login-username" placeholder="Usuário" />
+      <input type="password" id="login-password" placeholder="Senha" />
+      <button id="login-button">Login</button>
+      <p>Não tem conta? <a href="#" id="go-to-register">Registrar</a></p>
     </div>
+    <div class="register-form" style="display:none;">
+      <h2>Registrar</h2>
+      <input type="text" id="register-username" placeholder="Nome de usuário" />
+      <input type="password" id="register-password" placeholder="Senha" />
+      <button id="register-button">Registrar</button>
+      <p>Já tem conta? <a href="#" id="go-to-login">Fazer Login</a></p>
+    </div>
+  </div>
 
-    <!-- Área onde as barras serão exibidas -->
-    <div class="container" id="bar-container"></div>
+  <!-- HUD -->
+  <div class="hud-container" id="hud-container">
+    <h2>Bem-vindo, <span id="user-name"></span></h2>
+    <div id="bars-container"></div>
+    <button id="add-bar">Adicionar Barra</button>
   </div>
 
   <script>
-    const loginSection = document.getElementById('login-section');
-    const registerSection = document.getElementById('register-section');
-    const dashboardSection = document.getElementById('dashboard-section');
-    const container = document.getElementById('bar-container');
+    const loginForm = document.querySelector('.login-form');
+    const registerForm = document.querySelector('.register-form');
+    const loginRegisterContainer = document.getElementById('login-register-container');
+    const hudContainer = document.getElementById('hud-container');
+    const userNameSpan = document.getElementById('user-name');
+    const barsContainer = document.getElementById('bars-container');
+    const addBarButton = document.getElementById('add-bar');
 
-    // Função para exibir a seção de login
-    function showLogin() {
-      registerSection.style.display = "none";
-      loginSection.style.display = "block";
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      showHUD(JSON.parse(savedUser));
+    } else {
+      loginRegisterContainer.style.display = 'flex';
     }
 
-    // Função para exibir a seção de registro
-    function showRegister() {
-      loginSection.style.display = "none";
-      registerSection.style.display = "block";
+    document.getElementById('login-button').addEventListener('click', login);
+    document.getElementById('register-button').addEventListener('click', register);
+    document.getElementById('go-to-register').addEventListener('click', showRegisterForm);
+    document.getElementById('go-to-login').addEventListener('click', showLoginForm);
+    addBarButton.addEventListener('click', createBar);
+
+    function showRegisterForm(event) {
+      event.preventDefault();
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
     }
 
-    // Função para registrar um novo usuário
-    document.getElementById("registerForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const username = document.getElementById("registerUsername").value;
-      const password = document.getElementById("registerPassword").value;
-      
-      // Verifica se o usuário já existe
-      if (localStorage.getItem(username)) {
-        alert("Nome de usuário já existe. Escolha outro.");
-      } else {
-        // Salva o novo usuário
-        localStorage.setItem(username, password);
-        alert("Registro bem-sucedido! Agora faça login.");
-        
-        // Volta para a tela de login
-        showLogin();
-      }
-    });
+    function showLoginForm(event) {
+      event.preventDefault();
+      registerForm.style.display = 'none';
+      loginForm.style.display = 'block';
+    }
 
-    // Função para fazer login
-    document.getElementById("loginForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const username = document.getElementById("loginUsername").value;
-      const password = document.getElementById("loginPassword").value;
-      const storedPassword = localStorage.getItem(username);
-      
-      // Verifica se o usuário existe e a senha está correta
-      if (storedPassword && storedPassword === password) {
-        alert("Login bem-sucedido!");
-        loginSection.style.display = "none"; // Esconde a seção de login
-        dashboardSection.style.display = "block"; // Mostra a seção do dashboard
-      } else {
-        alert("Usuário ou senha incorretos!");
-      }
-    });
+    function login() {
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
 
-    // Carregar as barras salvas ao carregar a página
-    window.onload = function() {
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.forEach(barData => {
-        const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-        container.appendChild(bar);
-      });
-    };
+      const user = {
+        username,
+        password
+      };
 
-    // Função para criar uma barra
-    function createBar(type, name, initial, max) {
+      localStorage.setItem('user', JSON.stringify(user));
+      showHUD(user);
+    }
+
+    function register() {
+      const username = document.getElementById('register-username').value;
+      const password = document.getElementById('register-password').value;
+
+      const user = {
+        username,
+        password
+      };
+
+      localStorage.setItem('user', JSON.stringify(user));
+      showHUD(user);
+    }
+
+    function showHUD(user) {
+      loginRegisterContainer.style.display = 'none';
+      hudContainer.style.display = 'block';
+      userNameSpan.innerText = user.username;
+    }
+
+    function createBar() {
+      const barName = prompt('Digite o nome da barra:');
+      const maxValue = parseInt(prompt('Digite o valor máximo da barra:')) || 100;
+      const initialValue = parseInt(prompt('Digite o valor inicial da barra:')) || 0;
+
       const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.dataset.max = max;
-      bar.dataset.type = type;
-      bar.innerHTML = `
-        <input type="text" name="bar-name" value="${name}" onchange="updateBarName(this)" />
-        <div class="bar-inner">
-          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
-        </div>
-        <div>
-          <button onclick="adjustBar(this, -5)">-5</button>
-          <button onclick="adjustBar(this, -1)">-1</button>
-          <button onclick="adjustBar(this, 1)">+1</button>
-          <button onclick="adjustBar(this, 5)">+5</button>
-        </div>
-        <button class="remove" onclick="removeBar(this)">Remover</button>
-      `;
-      bar.dataset.current = initial;
-      return bar;
+      bar.classList.add('bar');
+      bar.dataset.max = maxValue;
+      bar.dataset.current = initialValue;
+
+      const fill = document.createElement('div');
+      fill.classList.add('bar-fill');
+      fill.style.width = `${(initialValue / maxValue) * 100}%`;
+      fill.innerText = `${initialValue}/${maxValue}`;
+      bar.appendChild(fill);
+
+      const buttons = document.createElement('div');
+      buttons.classList.add('bar-buttons');
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.classList.add('bar-name');
+      nameInput.value = barName;
+      nameInput.addEventListener('input', updateBarName);
+
+      const increaseButton = document.createElement('button');
+      increaseButton.textContent = '+';
+      increaseButton.addEventListener('click', () => adjustBar(increaseButton, 1));
+
+      const decreaseButton = document.createElement('button');
+      decreaseButton.textContent = '-';
+      decreaseButton.addEventListener('click', () => adjustBar(decreaseButton, -1));
+
+      const removeButton = document.createElement('button');
+      removeButton.textContent = 'Remover';
+      removeButton.addEventListener('click', () => removeBar(removeButton));
+
+      buttons.appendChild(nameInput);
+      buttons.appendChild(increaseButton);
+      buttons.appendChild(decreaseButton);
+      buttons.appendChild(removeButton);
+
+      bar.appendChild(buttons);
+      barsContainer.appendChild(bar);
     }
 
-    // Adicionar uma nova barra
-    function addBar() {
-      const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
-      const initialValue = parseInt(document.getElementById('initial-value').value);
-      const maxValue = parseInt(document.getElementById('max-value').value);
-
-      if (initialValue < 0 || maxValue < 1) {
-        alert("Os valores devem ser válidos (inicial >= 0, máximo >= 1).");
-        return;
-      }
-
-      const bar = createBar(type, name, initialValue, maxValue);
-      container.appendChild(bar);
-
-      // Salvar a barra no localStorage
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.push({ type, name, initial: initialValue, max: maxValue });
-      localStorage.setItem('bars', JSON.stringify(savedBars));
-    }
-
-    // Ajustar os valores das barras
     function adjustBar(button, amount) {
       const bar = button.closest('.bar');
-      const current = parseInt(bar.dataset.current);
+      let current = parseInt(bar.dataset.current);
       const max = parseInt(bar.dataset.max);
-      const newValue = Math.min(Math.max(current + amount, 0), max);
+
+      // Permitindo pontos temporários (passando do máximo)
+      const newValue = current + amount;
 
       bar.dataset.current = newValue;
       bar.querySelector('.bar-fill').style.width = `${(newValue / max) * 100}%`;
-      bar.querySelector('.bar-fill').innerText = `${newValue}/${max}`;
-
-      // Atualizar no localStorage
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = savedBars.findIndex(b => b.name === bar.querySelector('[name="bar-name"]').value);
-      if (index !== -1) {
-        savedBars[index].initial = newValue;
-        localStorage.setItem('bars', JSON.stringify(savedBars));
-      }
+      bar.querySelector('.bar-fill').innerText = `${newValue} / ${max} (temporário)`;
     }
 
-    // Atualizar nome da barra
-    function updateBarName(input) {
-      const bar = input.closest('.bar');
-      const newName = input.value;
-
-      // Atualizar no localStorage
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = savedBars.findIndex(b => b.name === bar.querySelector('[name="bar-name"]').value);
-      if (index !== -1) {
-        savedBars[index].name = newName;
-        localStorage.setItem('bars', JSON.stringify(savedBars));
-      }
+    function updateBarName(event) {
+      const bar = event.target.closest('.bar');
+      const newName = event.target.value;
+      // Atualizar o nome da barra no localStorage ou em outro lugar se necessário
     }
 
-    // Remover a barra
     function removeBar(button) {
       const bar = button.closest('.bar');
       bar.remove();
-
-      // Remover do localStorage
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      const index = savedBars.findIndex(b => b.name === bar.querySelector('[name="bar-name"]').value);
-      if (index !== -1) {
-        savedBars.splice(index, 1);
-        localStorage.setItem('bars', JSON.stringify(savedBars));
-      }
     }
   </script>
 </body>
