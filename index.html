@@ -88,17 +88,22 @@
     <p>Não tem uma conta? <a href="javascript:void(0);" onclick="showRegister()">Registrar-se</a></p>
   </div>
 
- <div id="left-sidebar">
-  <h2>Personagens</h2>
-  <div id="characters-container"></div>
-  <form id="characterForm">
-    <input type="text" id="character-name" placeholder="Novo personagem" required>
-    <button type="submit">Adicionar</button>
-  </form>
-</div>
-<div id="main-content">
-  <h1>Bem-vindo ao Dashboard</h1>
-  <!-- Conteúdo principal aqui -->
+<div style="display: flex; height: 100vh;">
+  <!-- Barra lateral -->
+  <div id="left-sidebar" style="width: 250px; border-right: 1px solid #ccc; padding: 10px; overflow-y: auto;">
+    <h2>Personagens</h2>
+    <div id="characters-container"></div>
+    <form id="characterForm">
+      <input type="text" id="character-name" placeholder="Novo personagem" required style="width: calc(100% - 10px); margin-bottom: 10px;">
+      <button type="submit">Adicionar</button>
+    </form>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div id="main-content" style="flex-grow: 1; padding: 10px;">
+    <h1>Bem-vindo ao Dashboard</h1>
+    <!-- Conteúdo principal aqui -->
+  </div>
 </div>
    
   <!-- Register Section -->
@@ -313,7 +318,7 @@ function adjustBar(button, value) {
 
       localStorage.setItem('bars', JSON.stringify(bars));
     }
-   const charactersContainer = document.getElementById('characters-container');
+  const charactersContainer = document.getElementById('characters-container');
 
 // Função para salvar um personagem
 document.getElementById("characterForm").addEventListener("submit", (e) => {
@@ -344,19 +349,18 @@ function loadCharacters() {
 // Função para exibir um personagem
 function displayCharacter(character) {
   const characterDiv = document.createElement("div");
-  characterDiv.className = "character";
+  characterDiv.style.border = "1px solid #ccc";
+  characterDiv.style.marginBottom = "10px";
+  characterDiv.style.padding = "10px";
 
   characterDiv.innerHTML = `
     <h3>${character.name}</h3>
-    <div class="bar-group">
+    <div>
       ${character.bars
         .map(
           (bar) => `
-        <div class="bar">
-          <div class="bar-inner">
-            <div class="bar-fill ${bar.type}" style="width: ${(bar.current / bar.max) * 100}%;"></div>
-          </div>
-          <p>${bar.type.charAt(0).toUpperCase() + bar.type.slice(1)}: ${bar.current}/${bar.max}</p>
+        <div>
+          <strong>${bar.type}:</strong> ${bar.current}/${bar.max}
         </div>
       `
         )
