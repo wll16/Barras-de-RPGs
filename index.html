@@ -88,14 +88,17 @@
     <p>Não tem uma conta? <a href="javascript:void(0);" onclick="showRegister()">Registrar-se</a></p>
   </div>
 
-   <div id="characters-section" style="display: none;">
-  <h1>Personagens</h1>
-  <form id="characterForm">
-    <label for="character-name">Nome do Personagem:</label>
-    <input type="text" id="character-name" placeholder="Ex.: Herói" required>
-    <button type="submit">Salvar Personagem</button>
-  </form>
+ <div id="left-sidebar">
+  <h2>Personagens</h2>
   <div id="characters-container"></div>
+  <form id="characterForm">
+    <input type="text" id="character-name" placeholder="Novo personagem" required>
+    <button type="submit">Adicionar</button>
+  </form>
+</div>
+<div id="main-content">
+  <h1>Bem-vindo ao Dashboard</h1>
+  <!-- Conteúdo principal aqui -->
 </div>
    
   <!-- Register Section -->
@@ -310,49 +313,35 @@ function adjustBar(button, value) {
 
       localStorage.setItem('bars', JSON.stringify(bars));
     }
-     const charactersSection = document.getElementById('characters-section');
-const charactersContainer = document.getElementById('characters-container');
+   const charactersContainer = document.getElementById('characters-container');
 
-// Função para exibir a seção de personagens após o login
-function showCharactersSection() {
-  dashboardSection.style.display = "none";
-  charactersSection.style.display = "block";
-}
-
-// Função para salvar um personagem no localStorage
+// Função para salvar um personagem
 document.getElementById("characterForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const characterName = document.getElementById("character-name").value;
 
-  // Obter lista de personagens do localStorage
   const characters = JSON.parse(localStorage.getItem("characters")) || [];
-
-  // Criar novo personagem com barras iniciais
   const newCharacter = {
     name: characterName,
     bars: [
       { type: "vida", current: 20, max: 20 },
       { type: "sanidade", current: 15, max: 15 },
-      // Adicione outras barras padrão aqui
     ],
   };
 
-  // Adicionar o personagem à lista e salvar no localStorage
   characters.push(newCharacter);
   localStorage.setItem("characters", JSON.stringify(characters));
-
-  // Exibir o personagem no dashboard
   displayCharacter(newCharacter);
-  document.getElementById("character-name").value = ""; // Limpar o campo de entrada
+  document.getElementById("character-name").value = "";
 });
 
-// Função para exibir personagens salvos
+// Função para carregar personagens
 function loadCharacters() {
   const characters = JSON.parse(localStorage.getItem("characters")) || [];
   characters.forEach(displayCharacter);
 }
 
-// Função para exibir um único personagem
+// Função para exibir um personagem
 function displayCharacter(character) {
   const characterDiv = document.createElement("div");
   characterDiv.className = "character";
@@ -373,7 +362,7 @@ function displayCharacter(character) {
         )
         .join("")}
     </div>
-    <button onclick="deleteCharacter('${character.name}')">Excluir Personagem</button>
+    <button onclick="deleteCharacter('${character.name}')">Excluir</button>
   `;
 
   charactersContainer.appendChild(characterDiv);
@@ -384,16 +373,12 @@ function deleteCharacter(name) {
   const characters = JSON.parse(localStorage.getItem("characters")) || [];
   const updatedCharacters = characters.filter((character) => character.name !== name);
   localStorage.setItem("characters", JSON.stringify(updatedCharacters));
-
-  // Atualizar a exibição
   charactersContainer.innerHTML = "";
   loadCharacters();
 }
 
 // Carregar personagens ao iniciar
-window.onload = () => {
-  loadCharacters();
-};
+window.onload = loadCharacters;
 
   </script>
 </body>
