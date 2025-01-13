@@ -216,33 +216,38 @@
     }
 
     // Adicionar uma nova barra
-    function addBar() {
-      const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
-      const initialValue = parseInt(document.getElementById('initial-value').value);
-      const maxValue = parseInt(document.getElementById('max-value').value);
+function addBar() {
+  const type = document.getElementById('bar-type').value;
+  const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
+  const initialValue = parseInt(document.getElementById('initial-value').value);
+  const maxValue = parseInt(document.getElementById('max-value').value);
 
-      if (initialValue < 0 || maxValue < 1) {
-        alert("Os valores devem ser válidos (inicial >= 0, máximo >= 1).");
-        return;
-      }
+  if (initialValue < 0 || maxValue < 1) {
+    alert("Os valores devem ser válidos (inicial >= 0, máximo >= 1).");
+    return;
+  }
 
-      const bar = createBar(type, name, initialValue, maxValue);
-      container.appendChild(bar);
+  const bar = createBar(type, name, initialValue, maxValue);
+  container.appendChild(bar);
 
-// Permite exceder para cima, mas não permite ir abaixo de zero
-      currentValue = Math.max(0, currentValue + value);
-      bar.dataset.current = currentValue;
+  // Inicializando os valores
+  let currentValue = initialValue;
+  const barFill = bar.querySelector('.bar-fill');  // Certificando que barFill seja capturado corretamente
 
-      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
-      barFill.style.width = `${widthPercentage}%`;
-     
-      // Salvar as barras no localStorage
-      saveBars();
+  // Permite exceder para cima, mas não permite ir abaixo de zero
+  currentValue = Math.max(0, currentValue);  // Garante que o valor inicial não seja negativo
+  bar.dataset.current = currentValue;
 
-      // Limpa o campo de nome após adicionar
-      document.getElementById('bar-name').value = '';
-    }
+  // Calculando a porcentagem da largura
+  const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
+  barFill.style.width = `${widthPercentage}%`;
+
+  // Salvar as barras no localStorage
+  saveBars();
+
+  // Limpa o campo de nome após adicionar
+  document.getElementById('bar-name').value = '';
+}
 
     // Ajustar o valor da barra
     function adjustBar(button, value) {
