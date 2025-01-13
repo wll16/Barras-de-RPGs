@@ -102,6 +102,15 @@
   <!-- Dashboard Section (exibe as barras após login) -->
   <div id="dashboard-section" style="display: none;">
     <h1>Dashboard - Barras de Status</h1>
+
+    <!-- Seleção do Personagem -->
+    <div>
+      <label for="character-select">Escolha seu Personagem:</label>
+      <select id="character-select">
+        <!-- As opções de personagens serão carregadas aqui -->
+      </select>
+      <button onclick="loadCharacter()">Carregar Personagem</button>
+    </div>
     
     <!-- Configuração para adicionar barras -->
     <div>
@@ -134,6 +143,7 @@
     const registerSection = document.getElementById('register-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const container = document.getElementById('bar-container');
+    const characterSelect = document.getElementById('character-select');
 
     // Função para exibir a seção de login
     function showLogin() {
@@ -152,7 +162,7 @@
       e.preventDefault();
       const username = document.getElementById("registerUsername").value;
       const password = document.getElementById("registerPassword").value;
-      
+
       // Verifica se o usuário já existe
       if (localStorage.getItem(username)) {
         alert("Nome de usuário já existe. Escolha outro.");
@@ -172,12 +182,13 @@
       const username = document.getElementById("loginUsername").value;
       const password = document.getElementById("loginPassword").value;
       const storedPassword = localStorage.getItem(username);
-      
+
       // Verifica se o usuário existe e a senha está correta
       if (storedPassword && storedPassword === password) {
         alert("Login bem-sucedido!");
         loginSection.style.display = "none"; // Esconde a seção de login
         dashboardSection.style.display = "block"; // Mostra a seção do dashboard
+        loadCharacterOptions(username); // Carregar opções de personagens
       } else {
         alert("Usuário ou senha incorretos!");
       }
@@ -185,120 +196,103 @@
 
     // Carregar as barras salvas ao carregar a página
     window.onload = function() {
-      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
-      savedBars.forEach(barData => {
+      // Carregar os personagens ao iniciar o login
+      const savedCharacters = JSON.parse(localStorage.getItem('characters')) || {};
+      if (savedCharacters) {
+        loadCharacterOptions(savedCharacters);
+      }
+    };
+
+    // Função para carregar as opções de personagens
+    function loadCharacterOptions(username) {
+      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
+      characterSelect.innerHTML = ''; // Limpar as opções anteriores
+
+      // Adicionar opções de personagens
+      Object.keys(savedCharacters).forEach(characterName => {
+        const option = document.createElement('option');
+        option.value = characterName;
+        option.textContent = characterName;
+        characterSelect.appendChild(option);
+      });
+    }
+
+    // Função para carregar um personagem
+    function loadCharacter() {
+      const username = document.getElementById("loginUsername").value;
+      const selectedCharacter = characterSelect.value;
+
+      if (!selectedCharacter) {
+        alert("Selecione um personagem.");
+        return;
+      }
+
+      // Carregar as barras do personagem selecionado
+      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
+      const characterData = savedCharacters[selectedCharacter];
+
+      if (characterData) {
+        loadBars(characterData);
+      }
+    }
+
+    // Função para carregar as barras de um personagem
+    function loadBars(characterData) {
+      container.innerHTML = ''; // Limpar as barras atuais
+
+      characterData.bars.forEach(barData => {
         const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
         container.appendChild(bar);
       });
-    };
+    }
 
-    // Função para criar uma barra
+    // Função para adicionar uma nova barra
+    function addBar() {
+      const type = document.getElementById('bar-type').value;
+      const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
+      const initialValue = parseInt(document.getElementById('initial-value').value);
+      const maxValue = parseInt(document.getElementById('max-value').value);
+
+      // Criar um objeto de barra
+      const barData = { type, name, initial: initialValue, max: maxValue };
+
+      // Armazenar a barra em um personagem específico
+      const username = document.getElementById("loginUsername").value;
+      const characterName = characterSelect.value;
+
+      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
+      if (!savedCharacters[characterName]) {
+        savedCharacters[characterName] = { bars: [] };
+      }
+      savedCharacters[characterName].bars.push(barData);
+
+      // Salvar no localStorage
+      localStorage.setItem(username, JSON.stringify(savedCharacters));
+      alert("Barra adicionada!");
+      loadBars(savedCharacters[characterName]); // Recarregar as barras
+    }
+
+    // Função para criar a barra visualmente
     function createBar(type, name, initial, max) {
       const bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.dataset.max = max;
-      bar.dataset.type = type;
-      bar.innerHTML = `
-        <input type="text" name="bar-name" value="${name}" onchange="updateBarName(this)" />
-        <div class="bar-inner">
-          <div class="bar-fill ${type}" style="width: ${(Math.min(initial, max) / max) * 100}%;">${initial}/${max}</div>
-        </div>
-        <div>
-          <button onclick="adjustBar(this, -5)">-5</button>
-          <button onclick="adjustBar(this, -1)">-1</button>
-          <button onclick="adjustBar(this, 1)">+1</button>
-          <button onclick="adjustBar(this, 5)">+5</button>
-        </div>
-        <button class="remove" onclick="removeBar(this)">Remover</button>
-      `;
-      bar.dataset.current = initial;
+      bar.classList.add('bar');
+
+      const barName = document.createElement('div');
+      barName.textContent = name;
+      bar.appendChild(barName);
+
+      const barInner = document.createElement('div');
+      barInner.classList.add('bar-inner');
+
+      const barFill = document.createElement('div');
+      barFill.classList.add('bar-fill', type);
+      barFill.style.width = (initial / max) * 100 + '%';
+      barFill.textContent = `${initial} / ${max}`;
+      barInner.appendChild(barFill);
+
+      bar.appendChild(barInner);
+
       return bar;
-    }
-
-// Função para adicionar uma nova barra
-function addBar() {
-  const type = document.getElementById('bar-type').value;
-  const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
-  const initialValue = parseInt(document.getElementById('initial-value').value);
-  const maxValue = parseInt(document.getElementById('max-value').value);
-
-  if (initialValue < 0 || maxValue < 1) {
-    alert("Os valores devem ser válidos (inicial >= 0, máximo >= 1).");
-    return;
-  }
-
-  // Ajustando o valor inicial para não exceder o máximo
-  const adjustedInitialValue = Math.min(initialValue, maxValue); // Garante que o valor inicial não ultrapasse o máximo
-
-  const bar = createBar(type, name, adjustedInitialValue, maxValue);
-  container.appendChild(bar);
-
-  // Inicializando os valores
-  let currentValue = adjustedInitialValue;
-  const barFill = bar.querySelector('.bar-fill');  // Certificando que barFill seja capturado corretamente
-
-  // Garantir que o valor não seja negativo
-  currentValue = Math.max(0, currentValue);  // Garante que o valor inicial não seja negativo
-  bar.dataset.current = currentValue;
-
-  // Calculando a porcentagem da largura
-  const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
-  barFill.style.width = `${widthPercentage}%`;
-
-  // Salvar as barras no localStorage
-  saveBars();
-
-  // Limpar o campo de nome após adicionar
-  document.getElementById('bar-name').value = '';
-}
-
-    // Ajustar o valor da barra
-function adjustBar(button, value) {
-  const bar = button.closest('.bar');
-  const barFill = bar.querySelector('.bar-fill');
-  const maxValue = parseInt(bar.dataset.max);
-  let currentValue = parseInt(bar.dataset.current);
-
-  // Permitir que o valor exceda o valor máximo
-  currentValue += value;
-  
-  // Não permitir que o valor vá abaixo de zero
-  currentValue = Math.max(0, currentValue);
-
-  // Atualizando o valor da barra
-  bar.dataset.current = currentValue;
-  
-  // Se o valor exceder o máximo, manter o valor atual (pontos temporários permitidos)
-  const widthPercentage = (currentValue / maxValue) * 100;
-
-  barFill.style.width = `${widthPercentage}%`;
-  barFill.textContent = `${currentValue}/${maxValue}`;
-
-  // Salvar as barras no localStorage
-  saveBars();
-}
-
-    // Remover uma barra
-    function removeBar(button) {
-      const bar = button.closest('.bar');
-      bar.remove();
-
-      // Salvar as barras no localStorage
-      saveBars();
-    }
-
-    // Função para salvar as barras no localStorage
-    function saveBars() {
-      const bars = Array.from(container.children).map(bar => {
-        return {
-          type: bar.dataset.type,
-          name: bar.querySelector('[name="bar-name"]').value,
-          initial: parseInt(bar.dataset.current),
-          max: parseInt(bar.dataset.max)
-        };
-      });
-
-      localStorage.setItem('bars', JSON.stringify(bars));
     }
   </script>
 </body>
