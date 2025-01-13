@@ -253,31 +253,30 @@ function addBar() {
 }
 
     // Ajustar o valor da barra
-    function adjustBar(button, value) {
-      const bar = button.closest('.bar');
-      const barFill = bar.querySelector('.bar-fill');
-      const maxValue = parseInt(bar.dataset.max);
-      let currentValue = parseInt(bar.dataset.current);
+function adjustBar(button, value) {
+  const bar = button.closest('.bar');
+  const barFill = bar.querySelector('.bar-fill');
+  const maxValue = parseInt(bar.dataset.max);
+  let currentValue = parseInt(bar.dataset.current);
 
-      currentValue = Math.max(0, Math.min(currentValue + value, maxValue));
-      bar.dataset.current = currentValue;
-      barFill.style.width = `${(currentValue / maxValue) * 100}%`;
-      barFill.textContent = `${currentValue}/${maxValue}`;
+  // Permitir que o valor exceda o valor máximo
+  currentValue += value;
+  
+  // Não permitir que o valor vá abaixo de zero
+  currentValue = Math.max(0, currentValue);
 
-      // Salvar as barras no localStorage
-      saveBars();
-    }
+  // Atualizando o valor da barra
+  bar.dataset.current = currentValue;
+  
+  // Se o valor exceder o máximo, manter o valor atual (pontos temporários permitidos)
+  const widthPercentage = (currentValue / maxValue) * 100;
 
-    // Atualizar o nome da barra
-    function updateBarName(input) {
-      const bar = input.closest('.bar');
-      const name = input.value;
-      const barName = bar.querySelector('.bar-name');
-      barName.textContent = name;
+  barFill.style.width = `${widthPercentage}%`;
+  barFill.textContent = `${currentValue}/${maxValue}`;
 
-      // Salvar as barras no localStorage
-      saveBars();
-    }
+  // Salvar as barras no localStorage
+  saveBars();
+}
 
     // Remover uma barra
     function removeBar(button) {
