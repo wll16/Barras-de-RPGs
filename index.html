@@ -103,16 +103,6 @@
   <div id="dashboard-section" style="display: none;">
     <h1>Dashboard - Barras de Status</h1>
 
-    <!-- Seleção do Personagem -->
-    <div>
-      <label for="character-select">Escolha seu Personagem:</label>
-      <select id="character-select">
-        <!-- As opções de personagens serão carregadas aqui -->
-      </select>
-      <button onclick="loadCharacter()">Carregar Personagem</button>
-      <button onclick="saveCharacter()">Salvar Personagem</button>
-    </div>
-    
     <!-- Configuração para adicionar barras -->
     <div>
       <label for="bar-type">Tipo de Barra:</label>
@@ -126,7 +116,7 @@
         <option value="determinacao" style="color:darkblue;">Determinação</option>
         <option value="mana" style="color:deepskyblue;">Mana</option>
       </select>
-      <label for="bar-name">Nome:</label>
+      <label for="bar-name">Nome (opcional):</label>
       <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
       <label for="initial-value">Inicial:</label>
       <input type="number" id="initial-value" value="20" min="0">
@@ -189,43 +179,23 @@
         alert("Login bem-sucedido!");
         loginSection.style.display = "none"; // Esconde a seção de login
         dashboardSection.style.display = "block"; // Mostra a seção do dashboard
-        loadCharacterOptions(username); // Carregar opções de personagens
+        loadCharacter(username); // Carregar ou criar personagem
       } else {
         alert("Usuário ou senha incorretos!");
       }
     });
 
-    // Carregar os personagens ao iniciar o login
-    function loadCharacterOptions(username) {
+    // Função para carregar ou criar um personagem
+    function loadCharacter(username) {
       const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
-      characterSelect.innerHTML = ''; // Limpar as opções anteriores
 
-      // Adicionar opções de personagens
-      Object.keys(savedCharacters).forEach(characterName => {
-        const option = document.createElement('option');
-        option.value = characterName;
-        option.textContent = characterName;
-        characterSelect.appendChild(option);
-      });
-    }
-
-    // Função para carregar um personagem
-    function loadCharacter() {
-      const username = document.getElementById("loginUsername").value;
-      const selectedCharacter = characterSelect.value;
-
-      if (!selectedCharacter) {
-        alert("Selecione um personagem.");
-        return;
+      // Se o personagem não existir, cria um novo
+      if (!savedCharacters.character) {
+        savedCharacters.character = { bars: [] };
+        localStorage.setItem(username, JSON.stringify(savedCharacters));
       }
 
-      // Carregar as barras do personagem selecionado
-      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
-      const characterData = savedCharacters[selectedCharacter];
-
-      if (characterData) {
-        loadBars(characterData);
-      }
+      loadBars(savedCharacters.character);
     }
 
     // Função para carregar as barras no dashboard
@@ -237,51 +207,68 @@
       });
     }
 
-    // Função para adicionar uma barra ao personagem
+    // Função para criar a barra visual
+    function createBar(type, name, initial, max) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+
+      const barInner = document.createElement('div');
+      barInner.className = 'bar-inner';
+
+      const barFill = document.createElement('div');
+      barFill.className = `bar-fill ${type}`;
+      barFill.style.width = `${(initial / max) * 100}%`;
+      barFill.textContent = name ? `${name}: ${initial} / ${max}` : `${type.charAt(0).toUpperCase() + type.slice(1)}: ${initial} / ${max}`;
+
+      barInner.appendChild(barFill);
+      bar.appendChild(barInner);
+
+      // Botão de remoção
+      const removeButton = document.createElement('button');
+      removeButton.className = 'remove';
+      removeButton.textContent = 'Remover';
+      removeButton.onclick = () => removeBar(type, name);
+
+      bar.appendChild(removeButton);
+      return bar;
+    }
+
+    // Função para remover a barra
+    function removeBar(type, name) {
+      const username = document.getElementById("loginUsername").value;
+      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
+
+      const bars = savedCharacters.character.bars.filter(bar => !(bar.type === type && bar.name === name));
+      savedCharacters.character.bars = bars;
+
+      localStorage.setItem(username, JSON.stringify(savedCharacters));
+      loadBars(savedCharacters.character); // Recarregar as barras
+    }
+
+    // Função para adicionar uma nova barra
     function addBar() {
       const type = document.getElementById('bar-type').value;
-      const name = document.getElementById('bar-name').value;
+      const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1); // Se não houver nome, usa o tipo como nome
       const initialValue = parseInt(document.getElementById('initial-value').value);
       const maxValue = parseInt(document.getElementById('max-value').value);
       const username = document.getElementById("loginUsername").value;
-      const selectedCharacter = characterSelect.value;
 
-      if (!name || !selectedCharacter) {
-        alert("Informe o nome da barra e selecione um personagem.");
+      if (!username) {
+        alert("Faça login para adicionar uma barra.");
         return;
+      }
+
+      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
+      if (!savedCharacters.character) {
+        savedCharacters.character = { bars: [] };
       }
 
       const barData = { type, name, initial: initialValue, max: maxValue };
-
-      // Carregar dados do personagem e adicionar a barra
-      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
-      if (!savedCharacters[selectedCharacter]) {
-        savedCharacters[selectedCharacter] = { bars: [] };
-      }
-      savedCharacters[selectedCharacter].bars.push(barData);
-
-      // Salvar no localStorage
+      savedCharacters.character.bars.push(barData);
       localStorage.setItem(username, JSON.stringify(savedCharacters));
+
       alert("Barra adicionada!");
-
-      // Atualizar as barras exibidas
-      loadBars(savedCharacters[selectedCharacter]);
-    }
-
-    // Função para salvar o personagem atual
-    function saveCharacter() {
-      const username = document.getElementById("loginUsername").value;
-      const selectedCharacter = characterSelect.value;
-      const savedCharacters = JSON.parse(localStorage.getItem(username)) || {};
-
-      if (!selectedCharacter) {
-        alert("Selecione um personagem para salvar.");
-        return;
-      }
-
-      // Atualizar personagem no localStorage
-      localStorage.setItem(username, JSON.stringify(savedCharacters));
-      alert("Personagem salvo!");
+      loadBars(savedCharacters.character); // Atualizar a exibição das barras
     }
   </script>
 </body>
