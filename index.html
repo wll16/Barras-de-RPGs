@@ -102,7 +102,11 @@
   <!-- Conteúdo principal -->
   <div id="main-content" style="flex-grow: 1; padding: 10px;">
     <h1>Bem-vindo ao Dashboard</h1>
-    <!-- Conteúdo principal aqui -->
+    <div id="character-details" style="display: none; border: 1px solid #ccc; padding: 10px; margin-top: 20px;">
+      <h2 id="selected-character-name"></h2>
+      <div id="selected-character-bars"></div>
+      <button id="load-character" style="margin-top: 10px;">Carregar</button>
+    </div>
   </div>
 </div>
    
@@ -318,7 +322,12 @@ function adjustBar(button, value) {
 
       localStorage.setItem('bars', JSON.stringify(bars));
     }
-  const charactersContainer = document.getElementById('characters-container');
+ const charactersContainer = document.getElementById('characters-container');
+const characterDetails = document.getElementById('character-details');
+const selectedCharacterName = document.getElementById('selected-character-name');
+const selectedCharacterBars = document.getElementById('selected-character-bars');
+const loadCharacterButton = document.getElementById('load-character');
+let selectedCharacter = null;
 
 // Função para salvar um personagem
 document.getElementById("characterForm").addEventListener("submit", (e) => {
@@ -346,40 +355,36 @@ function loadCharacters() {
   characters.forEach(displayCharacter);
 }
 
-// Função para exibir um personagem
+// Função para exibir um personagem na lista lateral
 function displayCharacter(character) {
   const characterDiv = document.createElement("div");
-  characterDiv.style.border = "1px solid #ccc";
-  characterDiv.style.marginBottom = "10px";
-  characterDiv.style.padding = "10px";
+  characterDiv.textContent = character.name;
+  characterDiv.style.cursor = "pointer";
+  characterDiv.style.padding = "5px";
+  characterDiv.style.borderBottom = "1px solid #ddd";
 
-  characterDiv.innerHTML = `
-    <h3>${character.name}</h3>
-    <div>
-      ${character.bars
-        .map(
-          (bar) => `
-        <div>
-          <strong>${bar.type}:</strong> ${bar.current}/${bar.max}
-        </div>
-      `
-        )
-        .join("")}
-    </div>
-    <button onclick="deleteCharacter('${character.name}')">Excluir</button>
-  `;
+  characterDiv.addEventListener("click", () => {
+    selectedCharacter = character;
+    selectedCharacterName.textContent = character.name;
+    selectedCharacterBars.innerHTML = character.bars
+      .map(
+        (bar) =>
+          `<div><strong>${bar.type}:</strong> ${bar.current}/${bar.max}</div>`
+      )
+      .join("");
+    characterDetails.style.display = "block";
+  });
 
   charactersContainer.appendChild(characterDiv);
 }
 
-// Função para excluir um personagem
-function deleteCharacter(name) {
-  const characters = JSON.parse(localStorage.getItem("characters")) || [];
-  const updatedCharacters = characters.filter((character) => character.name !== name);
-  localStorage.setItem("characters", JSON.stringify(updatedCharacters));
-  charactersContainer.innerHTML = "";
-  loadCharacters();
-}
+// Função para carregar as informações de um personagem
+loadCharacterButton.addEventListener("click", () => {
+  if (selectedCharacter) {
+    alert(`Personagem ${selectedCharacter.name} carregado!`);
+    // Aqui você pode adicionar a lógica de ativar as configurações do personagem
+  }
+});
 
 // Carregar personagens ao iniciar
 window.onload = loadCharacters;
