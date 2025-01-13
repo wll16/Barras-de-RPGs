@@ -89,23 +89,8 @@
   </div>
 
 <div style="display: flex; height: 100vh;">
-  <!-- Login -->
-  <div id="login-section" style="flex-grow: 1; display: flex; justify-content: center; align-items: center;">
-    <form id="loginForm" style="text-align: center;">
-      <h2>Login</h2>
-      <input 
-        type="text" 
-        id="username" 
-        placeholder="Nome de usuário" 
-        required 
-        style="width: 200px; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;"
-      >
-      <button type="submit" style="width: 200px; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer; border-radius: 3px;">Entrar</button>
-    </form>
-  </div>
-
   <!-- Sistema principal (aparece após login) -->
-  <div id="main-container" style="display: none; flex: 1; flex-direction: row; overflow: hidden;">
+  <div id="main-container" style="display: flex; flex: 1; flex-direction: row; overflow: hidden;">
     <!-- Barra lateral -->
     <div id="left-sidebar" style="width: 250px; background-color: #2c2c2c; color: #fff; padding: 10px; overflow-y: auto;">
       <h2 style="margin-top: 0;">Personagens</h2>
@@ -125,7 +110,9 @@
     <!-- Detalhes do personagem -->
     <div id="character-details" style="flex-grow: 1; padding: 20px; overflow-y: auto; border-left: 1px solid #ccc; display: none;">
       <h2 id="selected-character-name"></h2>
-      <div id="selected-character-bars" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      <div id="selected-character-bars" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- As barras irão aparecer aqui -->
+      </div>
       <button id="load-character" style="margin-top: 10px; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer;">Carregar</button>
     </div>
   </div>
@@ -344,77 +331,38 @@ function adjustBar(button, value) {
       localStorage.setItem('bars', JSON.stringify(bars));
     }
      
-const loginForm = document.getElementById("loginForm");
 const mainContainer = document.getElementById("main-container");
-const loginSection = document.getElementById("login-section");
 
 const charactersContainer = document.getElementById("characters-container");
 const characterDetails = document.getElementById("character-details");
 const selectedCharacterName = document.getElementById("selected-character-name");
 const selectedCharacterBars = document.getElementById("selected-character-bars");
 const loadCharacterButton = document.getElementById("load-character");
-
 let selectedCharacter = null;
-let loggedInUser = "";
 
 // Simula armazenamento de usuários e seus personagens
-const userData = {};
-
-// Login
-loginForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const username = document.getElementById("username").value.trim();
-
-  if (!username) {
-    alert("Insira um nome de usuário válido!");
-    return;
-  }
-
-  // Inicializa os dados do usuário
-  if (!userData[username]) {
-    userData[username] = [];
-  }
-
-  loggedInUser = username;
-  
-  // Exibe o sistema principal
-  loginSection.style.display = "none";
-  mainContainer.style.display = "flex";
-  loadCharacters();
-});
-
-// Salva novo personagem
-document.getElementById("characterForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const characterName = document.getElementById("character-name").value.trim();
-
-  if (!characterName) {
-    alert("O nome do personagem não pode estar vazio!");
-    return;
-  }
-
-  // Verifica duplicidade
-  if (userData[loggedInUser].some((char) => char.name === characterName)) {
-    alert("Esse personagem já existe!");
-    return;
-  }
-
-  const newCharacter = {
-    name: characterName,
-    bars: [
-      { type: "vida", current: 20, max: 20 },
-      { type: "sanidade", current: 15, max: 15 },
-    ],
-  };
-
-  userData[loggedInUser].push(newCharacter);
-  displayCharacter(newCharacter);
-  document.getElementById("character-name").value = "";
-});
+const userData = {
+  'usuarioTeste': [
+    {
+      name: "Personagem 1",
+      bars: [
+        { type: "vida", current: 20, max: 20 },
+        { type: "sanidade", current: 15, max: 15 },
+      ],
+    },
+    {
+      name: "Personagem 2",
+      bars: [
+        { type: "vida", current: 18, max: 20 },
+        { type: "sanidade", current: 12, max: 15 },
+      ],
+    }
+  ],
+};
 
 // Carrega personagens do usuário logado
-function loadCharacters() {
-  const characters = userData[loggedInUser];
+function loadCharacters(username) {
+  const characters = userData[username];
   charactersContainer.innerHTML = ""; // Limpa a lista para evitar duplicações
   characters.forEach(displayCharacter);
 }
@@ -451,6 +399,10 @@ loadCharacterButton.addEventListener("click", () => {
     // Adicionar lógica adicional para carregar configurações do personagem
   }
 });
+
+// Exemplo de carregamento de personagens para o usuário 'usuarioTeste'
+loadCharacters('usuarioTeste');
+
 
   </script>
 </body>
