@@ -11,7 +11,7 @@
       color: #333;
     }
 
-    #login-form, #characters-form {
+    #login-form, #signup-form, #characters-form {
       display: none;
       margin: 20px auto;
       padding: 20px;
@@ -75,7 +75,7 @@
       background-color: darkred;
     }
 
-    #login-error {
+    #login-error, #signup-error {
       color: red;
       display: none;
     }
@@ -99,6 +99,16 @@
     <input type="password" id="login-password" placeholder="Senha" />
     <button onclick="login()">Entrar</button>
     <p id="login-error">Usuário ou senha inválidos!</p>
+    <p>Não tem uma conta? <button onclick="toggleSignup()">Cadastre-se</button></p>
+  </div>
+
+  <div id="signup-form">
+    <h2>Cadastro</h2>
+    <input type="text" id="signup-username" placeholder="Usuário" />
+    <input type="password" id="signup-password" placeholder="Senha" />
+    <button onclick="signup()">Cadastrar</button>
+    <p id="signup-error">Usuário já existe!</p>
+    <p>Já tem uma conta? <button onclick="toggleLogin()">Login</button></p>
   </div>
 
   <div id="characters-form">
@@ -124,9 +134,9 @@
       const storedUsername = localStorage.getItem('username');
       const storedPassword = localStorage.getItem('password');
 
-      // Verificar se o login é válido
       if (username === storedUsername && password === storedPassword) {
         document.getElementById('login-form').style.display = 'none';
+        document.getElementById('signup-form').style.display = 'none';
         document.getElementById('characters-form').style.display = 'block';
         document.getElementById('username').textContent = username;
         loadBars();
@@ -135,13 +145,42 @@
       }
     }
 
+    // Função para cadastro
+    function signup() {
+      const username = document.getElementById('signup-username').value;
+      const password = document.getElementById('signup-password').value;
+      
+      // Verifica se o usuário já existe
+      if (localStorage.getItem('username') === username) {
+        document.getElementById('signup-error').style.display = 'block';
+      } else {
+        localStorage.setItem('username', username);
+        localStorage.setItem('password', password);
+        document.getElementById('signup-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+      }
+    }
+
     // Função para logout
     function logout() {
       document.getElementById('login-form').style.display = 'block';
+      document.getElementById('signup-form').style.display = 'none';
       document.getElementById('characters-form').style.display = 'none';
     }
 
-    // Função para carregar as barras salvas
+    // Função para alternar para a tela de cadastro
+    function toggleSignup() {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('signup-form').style.display = 'block';
+    }
+
+    // Função para alternar para a tela de login
+    function toggleLogin() {
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('login-form').style.display = 'block';
+    }
+
+    // Função para carregar as barras
     function loadBars() {
       const container = document.getElementById('bars-container');
       const bars = JSON.parse(localStorage.getItem('bars')) || [];
@@ -152,7 +191,6 @@
 
     // Função para adicionar uma barra
     function addBar(type = document.getElementById('bar-type').value, name = document.getElementById('bar-name').value, current = document.getElementById('initial-value').value, max = document.getElementById('max-value').value) {
-      // Validação das entradas
       if (!name || !current || !max || isNaN(current) || isNaN(max) || current < 0 || max <= 0 || current > max) {
         alert("Por favor, preencha todos os campos corretamente.");
         return;
