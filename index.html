@@ -162,6 +162,8 @@
         // Salva o novo usuário
         localStorage.setItem(username, password);
         alert("Registro bem-sucedido! Agora faça login.");
+        
+        // Volta para a tela de login
         showLogin();
       }
     });
@@ -230,49 +232,59 @@
       const bar = createBar(type, name, initialValue, maxValue);
       container.appendChild(bar);
 
-      // Salvar as barras no localStorage
-      saveBars();
-
-      // Limpa o campo de nome após adicionar
-      document.getElementById('bar-name').value = '';
+      // Salvar a barra no localStorage
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      savedBars.push({ type, name, initial: initialValue, max: maxValue });
+      localStorage.setItem('bars', JSON.stringify(savedBars));
     }
 
-    // Ajustar o valor da barra
-    function adjustBar(button, value) {
+    // Ajustar os valores das barras
+    function adjustBar(button, amount) {
       const bar = button.closest('.bar');
-      const fill = bar.querySelector('.bar-fill');
-      let current = parseInt(bar.dataset.current);
-      let max = parseInt(bar.dataset.max);
-      current = Math.min(Math.max(current + value, 0), max);
+      const current = parseInt(bar.dataset.current);
+      const max = parseInt(bar.dataset.max);
+      const newValue = Math.min(Math.max(current + amount, 0), max);
 
-      bar.dataset.current = current;
-      fill.style.width = `${(current / max) * 100}%`;
-      fill.textContent = `${current}/${max}`;
+      bar.dataset.current = newValue;
+      bar.querySelector('.bar-fill').style.width = `${(newValue / max) * 100}%`;
+      bar.querySelector('.bar-fill').innerText = `${newValue}/${max}`;
 
-      // Salvar as barras atualizadas
-      saveBars();
+      // Atualizar no localStorage
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = savedBars.findIndex(b => b.name === bar.querySelector('[name="bar-name"]').value);
+      if (index !== -1) {
+        savedBars[index].initial = newValue;
+        localStorage.setItem('bars', JSON.stringify(savedBars));
+      }
     }
 
-    // Atualizar o nome da barra
+    // Atualizar nome da barra
     function updateBarName(input) {
       const bar = input.closest('.bar');
-      bar.querySelector('.bar-fill').textContent = input.value;
-      saveBars();
+      const newName = input.value;
+
+      // Atualizar no localStorage
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = savedBars.findIndex(b => b.name === bar.querySelector('[name="bar-name"]').value);
+      if (index !== -1) {
+        savedBars[index].name = newName;
+        localStorage.setItem('bars', JSON.stringify(savedBars));
+      }
     }
 
     // Remover a barra
     function removeBar(button) {
       const bar = button.closest('.bar');
       bar.remove();
-      saveBars();
-    }
 
-    // Salvar barras no localStorage
-    function saveBars() {
-      const bars = [];
-      const barElements = document.querySelectorAll('.bar');
-      barElements.forEach(bar => {
-        const name = bar.querySelector('input[name="bar-name"]').value;
-        const type = bar.dataset.type;
-        const initial = parseInt(bar.dataset.current);
-        const max = parseI
+      // Remover do localStorage
+      const savedBars = JSON.parse(localStorage.getItem('bars')) || [];
+      const index = savedBars.findIndex(b => b.name === bar.querySelector('[name="bar-name"]').value);
+      if (index !== -1) {
+        savedBars.splice(index, 1);
+        localStorage.setItem('bars', JSON.stringify(savedBars));
+      }
+    }
+  </script>
+</body>
+</html>
