@@ -230,6 +230,13 @@
       const bar = createBar(type, name, initialValue, maxValue);
       container.appendChild(bar);
 
+// Permite exceder para cima, mas não permite ir abaixo de zero
+      currentValue = Math.max(0, currentValue + value);
+      bar.dataset.current = currentValue;
+
+      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
+      barFill.style.width = `${widthPercentage}%`;
+     
       // Salvar as barras no localStorage
       saveBars();
 
@@ -244,11 +251,10 @@
       const maxValue = parseInt(bar.dataset.max);
       let currentValue = parseInt(bar.dataset.current);
 
-      currentValue = Math.max(0, currentValue + value);
+      currentValue = Math.max(0, Math.min(currentValue + value, maxValue));
       bar.dataset.current = currentValue;
-
-      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
-      barFill.style.width = `${widthPercentage}%`;
+      barFill.style.width = `${(currentValue / maxValue) * 100}%`;
+      barFill.textContent = `${currentValue}/${maxValue}`;
 
       // Salvar as barras no localStorage
       saveBars();
