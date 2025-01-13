@@ -79,6 +79,11 @@
 <body>
   <h1>Barras de Status - RPG Personalizadas</h1>
 
+  <nav>
+  <a href="sobre.html">Sobre</a>
+  <a href="contato.html">Contato</a>
+</nav>
+  
   <!-- Configuração para adicionar barras -->
   <div>
     <label for="bar-type">Tipo de Barra:</label>
@@ -95,21 +100,15 @@
     <label for="bar-name">Nome:</label>
     <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
     <label for="initial-value">Inicial:</label>
-    <input type="number" id="initial-value" value="20" min="0">
+    <input type="number" id="initial-value" value="40" min="0">
     <label for="max-value">Máximo:</label>
-    <input type="number" id="max-value" value="20" min="1">
+    <input type="number" id="max-value" value="100" min="1">
     <button onclick="addBar()">Adicionar Barra</button>
   </div>
 
   <!-- Área onde as barras serão exibidas -->
   <div class="container" id="bar-container">
   </div>
-  
-<div>
-  <label for="character-name">Personagem:</label>
-  <input type="text" id="character-name" placeholder="Nome do personagem" />
-  <button onclick="selectCharacter()">Selecionar</button>
-</div>
 
   <script>
     const container = document.getElementById('bar-container');
@@ -226,66 +225,6 @@
 
       localStorage.setItem('bars', JSON.stringify(bars));
     }
-    let currentCharacter = '';
-
-function selectCharacter() {
-  const nameInput = document.getElementById('character-name');
-  const name = nameInput.value.trim();
-
-  if (!name) {
-    alert("O nome do personagem não pode estar vazio!");
-    return;
-  }
-
-  currentCharacter = name;
-  nameInput.value = '';
-  loadBarsForCharacter();
-}
-
-function saveBars() {
-  if (!currentCharacter) {
-    alert("Selecione um personagem antes de salvar as barras!");
-    return;
-  }
-
-  const bars = [];
-  const allBars = document.querySelectorAll('.bar');
-  allBars.forEach(bar => {
-    const type = bar.dataset.type;
-    const name = bar.querySelector('input[name="bar-name"]').value;
-    const current = parseInt(bar.dataset.current);
-    const max = parseInt(bar.dataset.max);
-    bars.push({ type, name, initial: current, max });
-  });
-
-  const allCharacters = JSON.parse(localStorage.getItem('characters')) || {};
-  allCharacters[currentCharacter] = bars;
-  localStorage.setItem('characters', JSON.stringify(allCharacters));
-}
-
-function loadBarsForCharacter() {
-  if (!currentCharacter) {
-    alert("Selecione um personagem para carregar as barras!");
-    return;
-  }
-
-  container.innerHTML = ''; // Limpa as barras existentes
-  const allCharacters = JSON.parse(localStorage.getItem('characters')) || {};
-  const characterBars = allCharacters[currentCharacter] || [];
-
-  characterBars.forEach(barData => {
-    const bar = createBar(barData.type, barData.name, barData.initial, barData.max);
-    container.appendChild(bar);
-  });
-}
-
-// Atualizar para carregar as barras ao selecionar um personagem
-window.onload = function() {
-  const characters = JSON.parse(localStorage.getItem('characters')) || {};
-  if (Object.keys(characters).length === 0) {
-    alert("Nenhum personagem salvo! Crie um novo personagem para começar.");
-  }
-};
   </script>
 </body>
 </html>
