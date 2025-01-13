@@ -125,14 +125,11 @@
     <!-- Detalhes do personagem -->
     <div id="character-details" style="flex-grow: 1; padding: 20px; overflow-y: auto; border-left: 1px solid #ccc; display: none;">
       <h2 id="selected-character-name"></h2>
-      <div id="selected-character-bars" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- As barras irão aparecer aqui -->
-      </div>
+      <div id="selected-character-bars" style="display: flex; flex-direction: column; gap: 10px;"></div>
       <button id="load-character" style="margin-top: 10px; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer;">Carregar</button>
     </div>
   </div>
 </div>
-
    
   <!-- Register Section -->
   <div id="register-section" style="display: none;">
@@ -356,7 +353,9 @@ const characterDetails = document.getElementById("character-details");
 const selectedCharacterName = document.getElementById("selected-character-name");
 const selectedCharacterBars = document.getElementById("selected-character-bars");
 const loadCharacterButton = document.getElementById("load-character");
+
 let selectedCharacter = null;
+let loggedInUser = "";
 
 // Simula armazenamento de usuários e seus personagens
 const userData = {};
@@ -371,15 +370,17 @@ loginForm.addEventListener("submit", (e) => {
     return;
   }
 
-  // Simula inicialização de dados de usuário
+  // Inicializa os dados do usuário
   if (!userData[username]) {
     userData[username] = [];
   }
 
+  loggedInUser = username;
+  
   // Exibe o sistema principal
   loginSection.style.display = "none";
   mainContainer.style.display = "flex";
-  loadCharacters(username);
+  loadCharacters();
 });
 
 // Salva novo personagem
@@ -392,10 +393,8 @@ document.getElementById("characterForm").addEventListener("submit", (e) => {
     return;
   }
 
-  const characters = userData[loginForm.username.value];
-
   // Verifica duplicidade
-  if (characters.some((char) => char.name === characterName)) {
+  if (userData[loggedInUser].some((char) => char.name === characterName)) {
     alert("Esse personagem já existe!");
     return;
   }
@@ -408,14 +407,14 @@ document.getElementById("characterForm").addEventListener("submit", (e) => {
     ],
   };
 
-  characters.push(newCharacter);
+  userData[loggedInUser].push(newCharacter);
   displayCharacter(newCharacter);
   document.getElementById("character-name").value = "";
 });
 
 // Carrega personagens do usuário logado
-function loadCharacters(username) {
-  const characters = userData[username];
+function loadCharacters() {
+  const characters = userData[loggedInUser];
   charactersContainer.innerHTML = ""; // Limpa a lista para evitar duplicações
   characters.forEach(displayCharacter);
 }
