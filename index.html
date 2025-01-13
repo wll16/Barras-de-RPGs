@@ -244,10 +244,11 @@
       const maxValue = parseInt(bar.dataset.max);
       let currentValue = parseInt(bar.dataset.current);
 
-      currentValue = Math.max(0, Math.min(currentValue + value, maxValue));
+      currentValue = Math.max(0, currentValue + value);
       bar.dataset.current = currentValue;
-      barFill.style.width = `${(currentValue / maxValue) * 100}%`;
-      barFill.textContent = `${currentValue}/${maxValue}`;
+
+      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
+      barFill.style.width = `${widthPercentage}%`;
 
       // Salvar as barras no localStorage
       saveBars();
