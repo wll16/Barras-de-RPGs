@@ -89,31 +89,50 @@
   </div>
 
 <div style="display: flex; height: 100vh;">
-  <!-- Barra lateral -->
-  <div id="left-sidebar" style="width: 250px; background-color: #2c2c2c; color: #fff; padding: 10px; overflow-y: auto;">
-    <h2 style="margin-top: 0;">Personagens</h2>
-    <div id="characters-container" style="margin-bottom: 10px;"></div>
-    <form id="characterForm">
+  <!-- Login -->
+  <div id="login-section" style="flex-grow: 1; display: flex; justify-content: center; align-items: center;">
+    <form id="loginForm" style="text-align: center;">
+      <h2>Login</h2>
       <input 
         type="text" 
-        id="character-name" 
-        placeholder="Novo personagem" 
+        id="username" 
+        placeholder="Nome de usuário" 
         required 
-        style="width: calc(100% - 10px); margin-bottom: 10px; padding: 5px; border: none; border-radius: 3px;"
+        style="width: 200px; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;"
       >
-      <button type="submit" style="width: 100%; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer; border-radius: 3px;">Adicionar</button>
+      <button type="submit" style="width: 200px; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer; border-radius: 3px;">Entrar</button>
     </form>
   </div>
 
-  <!-- Conteúdo principal -->
-  <div id="main-content" style="flex-grow: 1; padding: 20px;">
-    <div id="character-details" style="display: none; border: 1px solid #ccc; padding: 10px; margin-top: 20px;">
+  <!-- Sistema principal (aparece após login) -->
+  <div id="main-container" style="display: none; flex: 1; flex-direction: row; overflow: hidden;">
+    <!-- Barra lateral -->
+    <div id="left-sidebar" style="width: 250px; background-color: #2c2c2c; color: #fff; padding: 10px; overflow-y: auto;">
+      <h2 style="margin-top: 0;">Personagens</h2>
+      <div id="characters-container" style="margin-bottom: 10px;"></div>
+      <form id="characterForm">
+        <input 
+          type="text" 
+          id="character-name" 
+          placeholder="Novo personagem" 
+          required 
+          style="width: calc(100% - 10px); margin-bottom: 10px; padding: 5px; border: none; border-radius: 3px;"
+        >
+        <button type="submit" style="width: 100%; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer; border-radius: 3px;">Adicionar</button>
+      </form>
+    </div>
+
+    <!-- Detalhes do personagem -->
+    <div id="character-details" style="flex-grow: 1; padding: 20px; overflow-y: auto; border-left: 1px solid #ccc; display: none;">
       <h2 id="selected-character-name"></h2>
-      <div id="selected-character-bars"></div>
+      <div id="selected-character-bars" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- As barras irão aparecer aqui -->
+      </div>
       <button id="load-character" style="margin-top: 10px; padding: 5px; border: none; background-color: #444; color: #fff; cursor: pointer;">Carregar</button>
     </div>
   </div>
 </div>
+
    
   <!-- Register Section -->
   <div id="register-section" style="display: none;">
@@ -328,14 +347,42 @@ function adjustBar(button, value) {
       localStorage.setItem('bars', JSON.stringify(bars));
     }
      
- const charactersContainer = document.getElementById('characters-container');
-const characterDetails = document.getElementById('character-details');
-const selectedCharacterName = document.getElementById('selected-character-name');
-const selectedCharacterBars = document.getElementById('selected-character-bars');
-const loadCharacterButton = document.getElementById('load-character');
+const loginForm = document.getElementById("loginForm");
+const mainContainer = document.getElementById("main-container");
+const loginSection = document.getElementById("login-section");
+
+const charactersContainer = document.getElementById("characters-container");
+const characterDetails = document.getElementById("character-details");
+const selectedCharacterName = document.getElementById("selected-character-name");
+const selectedCharacterBars = document.getElementById("selected-character-bars");
+const loadCharacterButton = document.getElementById("load-character");
 let selectedCharacter = null;
 
-// Função para salvar um personagem
+// Simula armazenamento de usuários e seus personagens
+const userData = {};
+
+// Login
+loginForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const username = document.getElementById("username").value.trim();
+
+  if (!username) {
+    alert("Insira um nome de usuário válido!");
+    return;
+  }
+
+  // Simula inicialização de dados de usuário
+  if (!userData[username]) {
+    userData[username] = [];
+  }
+
+  // Exibe o sistema principal
+  loginSection.style.display = "none";
+  mainContainer.style.display = "flex";
+  loadCharacters(username);
+});
+
+// Salva novo personagem
 document.getElementById("characterForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const characterName = document.getElementById("character-name").value.trim();
@@ -345,9 +392,9 @@ document.getElementById("characterForm").addEventListener("submit", (e) => {
     return;
   }
 
-  const characters = JSON.parse(localStorage.getItem("characters")) || [];
+  const characters = userData[loginForm.username.value];
 
-  // Verifica se o personagem já existe
+  // Verifica duplicidade
   if (characters.some((char) => char.name === characterName)) {
     alert("Esse personagem já existe!");
     return;
@@ -362,19 +409,18 @@ document.getElementById("characterForm").addEventListener("submit", (e) => {
   };
 
   characters.push(newCharacter);
-  localStorage.setItem("characters", JSON.stringify(characters));
   displayCharacter(newCharacter);
   document.getElementById("character-name").value = "";
 });
 
-// Função para carregar personagens
-function loadCharacters() {
-  const characters = JSON.parse(localStorage.getItem("characters")) || [];
-  charactersContainer.innerHTML = ""; // Limpa a lista para evitar duplicação
+// Carrega personagens do usuário logado
+function loadCharacters(username) {
+  const characters = userData[username];
+  charactersContainer.innerHTML = ""; // Limpa a lista para evitar duplicações
   characters.forEach(displayCharacter);
 }
 
-// Função para exibir um personagem na lista lateral
+// Exibe personagem na lista
 function displayCharacter(character) {
   const characterDiv = document.createElement("div");
   characterDiv.textContent = character.name;
@@ -399,19 +445,13 @@ function displayCharacter(character) {
   charactersContainer.appendChild(characterDiv);
 }
 
-// Função para carregar as informações de um personagem
+// Botão para carregar detalhes do personagem
 loadCharacterButton.addEventListener("click", () => {
   if (selectedCharacter) {
     alert(`Personagem ${selectedCharacter.name} carregado!`);
-    // Aqui você pode adicionar a lógica de ativar as configurações do personagem
+    // Adicionar lógica adicional para carregar configurações do personagem
   }
 });
-
-// Carregar personagens ao iniciar
-window.onload = loadCharacters;
-
-// Carregar personagens ao iniciar
-window.onload = loadCharacters;
 
   </script>
 </body>
