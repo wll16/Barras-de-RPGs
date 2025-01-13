@@ -21,5 +21,57 @@
   <h1>Bem-vindo à página Sobre</h1>
   <p>Esta é a página sobre o site. Aqui você pode incluir informações sobre o propósito do site e seus detalhes.</p>
   <a href="index.html">Voltar para a página inicial</a>
+
+<h1>Registro e Login</h1>
+
+    <!-- Registro -->
+    <h2>Registro</h2>
+    <form id="registerForm">
+        <input type="text" id="regUsername" placeholder="Nome de Usuário" required>
+        <input type="password" id="regPassword" placeholder="Senha" required>
+        <button type="submit">Registrar</button>
+    </form>
+
+    <!-- Login -->
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="loginUsername" placeholder="Nome de Usuário" required>
+        <input type="password" id="loginPassword" placeholder="Senha" required>
+        <button type="submit">Entrar</button>
+    </form>
+
+    <script>
+        // Registro
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("regUsername").value;
+            const password = document.getElementById("regPassword").value;
+
+            const response = await fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        });
+
+        // Login
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("loginUsername").value;
+            const password = document.getElementById("loginPassword").value;
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        });
+    </script>
 </body>
 </html>
