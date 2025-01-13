@@ -22,56 +22,61 @@
   <p>Esta é a página sobre o site. Aqui você pode incluir informações sobre o propósito do site e seus detalhes.</p>
   <a href="index.html">Voltar para a página inicial</a>
 
-<h1>Registro e Login</h1>
+  <h1>Registro e Login</h1>
 
-    <!-- Registro -->
-    <h2>Registro</h2>
-    <form id="registerForm">
-        <input type="text" id="regUsername" placeholder="Nome de Usuário" required>
-        <input type="password" id="regPassword" placeholder="Senha" required>
-        <button type="submit">Registrar</button>
-    </form>
+  <!-- Registro -->
+  <h2>Registro</h2>
+  <form id="registerForm">
+      <input type="text" id="regUsername" placeholder="Nome de Usuário" required>
+      <input type="password" id="regPassword" placeholder="Senha" required>
+      <button type="submit">Registrar</button>
+  </form>
 
-    <!-- Login -->
-    <h2>Login</h2>
-    <form id="loginForm">
-        <input type="text" id="loginUsername" placeholder="Nome de Usuário" required>
-        <input type="password" id="loginPassword" placeholder="Senha" required>
-        <button type="submit">Entrar</button>
-    </form>
+  <!-- Login -->
+  <h2>Login</h2>
+  <form id="loginForm">
+      <input type="text" id="loginUsername" placeholder="Nome de Usuário" required>
+      <input type="password" id="loginPassword" placeholder="Senha" required>
+      <button type="submit">Entrar</button>
+  </form>
 
-    <script>
-        // Registro
-        document.getElementById("registerForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const username = document.getElementById("regUsername").value;
-            const password = document.getElementById("regPassword").value;
+  <script>
+    // Registro
+    document.getElementById("registerForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById("regUsername").value;
+      const password = document.getElementById("regPassword").value;
 
-            const response = await fetch("/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
+      // Verifica se o usuário já existe
+      if (localStorage.getItem(username)) {
+        alert("Usuário já existe!");
+        return;
+      }
 
-            const result = await response.json();
-            alert(result.message);
-        });
+      // Salva o usuário no LocalStorage
+      localStorage.setItem(username, password);
+      alert("Usuário registrado com sucesso!");
+    });
 
-        // Login
-        document.getElementById("loginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const username = document.getElementById("loginUsername").value;
-            const password = document.getElementById("loginPassword").value;
+    // Login
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
 
-            const response = await fetch("/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
 
-            const result = await response.json();
-            alert(result.message);
-        });
-    </script>
+      // Recupera a senha do usuário do LocalStorage
+      const storedPassword = localStorage.getItem(username);
+
+      // Verifica se a senha está correta
+      if (storedPassword && storedPassword === password) {
+        alert("Login bem-sucedido!");
+        window.location.href = "dashboard.html"; // Redireciona para a página de dashboard
+      } else {
+        alert("Usuário ou senha incorretos!");
+      }
+    });
+  </script>
 </body>
 </html>
