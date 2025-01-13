@@ -53,8 +53,8 @@
     .esforco { background-color: yellow; }
     .fome { background-color: #ff7f00; }
     .sede { background-color: #00bfff; }
-    .determinacao { background-color: #003366; } /* Determinação com azul escuro */
-    .mana { background-color: #1e90ff; } /* Mana com azul diferenciado */
+    .determinacao { background-color: #003366; }
+    .mana { background-color: #1e90ff; }
 
     button {
       padding: 5px 10px;
@@ -99,30 +99,34 @@
     <p>Já tem uma conta? <a href="javascript:void(0);" onclick="showLogin()">Fazer login</a></p>
   </div>
 
-  <!-- Configuração para adicionar barras -->
-  <div>
-    <label for="bar-type">Tipo de Barra:</label>
-    <select id="bar-type">
-      <option value="vida" style="color:red;">Vida</option>
-      <option value="sanidade" style="color:blue;">Sanidade</option>
-      <option value="fe" style="color:gold;">Fé</option>
-      <option value="esforco" style="color:yellow;">Esforço</option>
-      <option value="fome" style="color:orange;">Fome</option>
-      <option value="sede" style="color:lightblue;">Sede</option>
-      <option value="determinacao" style="color:darkblue;">Determinação</option> <!-- Barra de Determinação com azul escuro -->
-      <option value="mana" style="color:deepskyblue;">Mana</option> <!-- Barra de Mana com azul diferenciado -->
-    </select>
-    <label for="bar-name">Nome:</label>
-    <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
-    <label for="initial-value">Inicial:</label>
-    <input type="number" id="initial-value" value="20" min="0">
-    <label for="max-value">Máximo:</label>
-    <input type="number" id="max-value" value="20" min="1">
-    <button onclick="addBar()">Adicionar Barra</button>
-  </div>
+  <!-- Dashboard Section (exibe as barras após login) -->
+  <div id="dashboard-section" style="display: none;">
+    <h1>Dashboard - Barras de Status</h1>
+    
+    <!-- Configuração para adicionar barras -->
+    <div>
+      <label for="bar-type">Tipo de Barra:</label>
+      <select id="bar-type">
+        <option value="vida" style="color:red;">Vida</option>
+        <option value="sanidade" style="color:blue;">Sanidade</option>
+        <option value="fe" style="color:gold;">Fé</option>
+        <option value="esforco" style="color:yellow;">Esforço</option>
+        <option value="fome" style="color:orange;">Fome</option>
+        <option value="sede" style="color:lightblue;">Sede</option>
+        <option value="determinacao" style="color:darkblue;">Determinação</option>
+        <option value="mana" style="color:deepskyblue;">Mana</option>
+      </select>
+      <label for="bar-name">Nome:</label>
+      <input type="text" id="bar-name" placeholder="Ex.: Saúde" />
+      <label for="initial-value">Inicial:</label>
+      <input type="number" id="initial-value" value="20" min="0">
+      <label for="max-value">Máximo:</label>
+      <input type="number" id="max-value" value="20" min="1">
+      <button onclick="addBar()">Adicionar Barra</button>
+    </div>
 
-  <!-- Área onde as barras serão exibidas -->
-  <div class="container" id="bar-container">
+    <!-- Área onde as barras serão exibidas -->
+    <div class="container" id="bar-container"></div>
   </div>
 
   <script>
@@ -240,29 +244,21 @@
       const maxValue = parseInt(bar.dataset.max);
       let currentValue = parseInt(bar.dataset.current);
 
-      // Permite exceder para cima, mas não permite ir abaixo de zero
-      currentValue = Math.max(0, currentValue + value);
+      currentValue = Math.max(0, Math.min(currentValue + value, maxValue));
       bar.dataset.current = currentValue;
-
-      const widthPercentage = Math.max(0, Math.min(100, (currentValue / maxValue) * 100));
-      barFill.style.width = `${widthPercentage}%`;
-
-      // Atualiza o texto da barra
+      barFill.style.width = `${(currentValue / maxValue) * 100}%`;
       barFill.textContent = `${currentValue}/${maxValue}`;
 
       // Salvar as barras no localStorage
       saveBars();
     }
 
-    // Atualizar nome da barra
+    // Atualizar o nome da barra
     function updateBarName(input) {
-      const newName = input.value.trim();
-      if (!newName) {
-        alert("O nome não pode estar vazio!");
-        input.value = input.defaultValue;
-      } else {
-        input.defaultValue = newName;
-      }
+      const bar = input.closest('.bar');
+      const name = input.value;
+      const barName = bar.querySelector('.bar-name');
+      barName.textContent = name;
 
       // Salvar as barras no localStorage
       saveBars();
@@ -270,23 +266,22 @@
 
     // Remover uma barra
     function removeBar(button) {
-      const bar = button.parentNode;
-      container.removeChild(bar);
+      const bar = button.closest('.bar');
+      bar.remove();
 
       // Salvar as barras no localStorage
       saveBars();
     }
 
-    // Salvar as barras no localStorage
+    // Função para salvar as barras no localStorage
     function saveBars() {
-      const bars = [];
-      const allBars = document.querySelectorAll('.bar');
-      allBars.forEach(bar => {
-        const type = bar.dataset.type;
-        const name = bar.querySelector('input[name="bar-name"]').value;
-        const current = parseInt(bar.dataset.current);
-        const max = parseInt(bar.dataset.max);
-        bars.push({ type, name, initial: current, max });
+      const bars = Array.from(container.children).map(bar => {
+        return {
+          type: bar.dataset.type,
+          name: bar.querySelector('[name="bar-name"]').value,
+          initial: parseInt(bar.dataset.current),
+          max: parseInt(bar.dataset.max)
+        };
       });
 
       localStorage.setItem('bars', JSON.stringify(bars));
@@ -294,4 +289,3 @@
   </script>
 </body>
 </html>
-
