@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login e Barras de Status - RPG</title>
+  <title>Login, Registro e Barras de Status - RPG</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -80,6 +80,7 @@
   </style>
 </head>
 <body>
+  <!-- Login Section -->
   <div id="login-section">
     <h1>Login</h1>
     <form id="loginForm">
@@ -87,8 +88,21 @@
       <input type="password" id="loginPassword" placeholder="Senha" required>
       <button type="submit">Entrar</button>
     </form>
+    <p>Não tem uma conta? <a href="javascript:void(0);" onclick="showRegister()">Registrar-se</a></p>
   </div>
 
+  <!-- Register Section -->
+  <div id="register-section" style="display: none;">
+    <h1>Registrar</h1>
+    <form id="registerForm">
+      <input type="text" id="registerUsername" placeholder="Nome de Usuário" required>
+      <input type="password" id="registerPassword" placeholder="Senha" required>
+      <button type="submit">Registrar</button>
+    </form>
+    <p>Já tem uma conta? <a href="javascript:void(0);" onclick="showLogin()">Fazer login</a></p>
+  </div>
+
+  <!-- Dashboard Section -->
   <div id="dashboard-section" style="display: none;">
     <h1>Barras de Status - RPG</h1>
     
@@ -119,10 +133,40 @@
 
   <script>
     const loginSection = document.getElementById('login-section');
+    const registerSection = document.getElementById('register-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const container = document.getElementById('bar-container');
 
-    // Função para verificar login
+    // Função para exibir a seção de login
+    function showLogin() {
+      registerSection.style.display = "none";
+      loginSection.style.display = "block";
+    }
+
+    // Função para exibir a seção de registro
+    function showRegister() {
+      loginSection.style.display = "none";
+      registerSection.style.display = "block";
+    }
+
+    // Função para registrar um novo usuário
+    document.getElementById("registerForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = document.getElementById("registerUsername").value;
+      const password = document.getElementById("registerPassword").value;
+      
+      // Verifica se o usuário já existe
+      if (localStorage.getItem(username)) {
+        alert("Nome de usuário já existe. Escolha outro.");
+      } else {
+        // Salva o novo usuário
+        localStorage.setItem(username, password);
+        alert("Registro bem-sucedido! Agora faça login.");
+        showLogin();
+      }
+    });
+
+    // Função para fazer login
     document.getElementById("loginForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const username = document.getElementById("loginUsername").value;
@@ -231,11 +275,4 @@
         const name = bar.querySelector('input[name="bar-name"]').value;
         const type = bar.dataset.type;
         const initial = parseInt(bar.dataset.current);
-        const max = parseInt(bar.dataset.max);
-        bars.push({ name, type, initial, max });
-      });
-      localStorage.setItem('bars', JSON.stringify(bars));
-    }
-  </script>
-</body>
-</html>
+        const max = parseI
