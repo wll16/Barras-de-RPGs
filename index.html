@@ -215,7 +215,7 @@
       return bar;
     }
 
-    // Adicionar uma nova barra
+// Função para adicionar uma nova barra
 function addBar() {
   const type = document.getElementById('bar-type').value;
   const name = document.getElementById('bar-name').value || type.charAt(0).toUpperCase() + type.slice(1);
@@ -227,14 +227,17 @@ function addBar() {
     return;
   }
 
-  const bar = createBar(type, name, initialValue, maxValue);
+  // Ajustando o valor inicial para não exceder o máximo
+  const adjustedInitialValue = Math.min(initialValue, maxValue); // Garante que o valor inicial não ultrapasse o máximo
+
+  const bar = createBar(type, name, adjustedInitialValue, maxValue);
   container.appendChild(bar);
 
   // Inicializando os valores
-  let currentValue = initialValue;
+  let currentValue = adjustedInitialValue;
   const barFill = bar.querySelector('.bar-fill');  // Certificando que barFill seja capturado corretamente
 
-  // Permite exceder para cima, mas não permite ir abaixo de zero
+  // Garantir que o valor não seja negativo
   currentValue = Math.max(0, currentValue);  // Garante que o valor inicial não seja negativo
   bar.dataset.current = currentValue;
 
@@ -245,7 +248,7 @@ function addBar() {
   // Salvar as barras no localStorage
   saveBars();
 
-  // Limpa o campo de nome após adicionar
+  // Limpar o campo de nome após adicionar
   document.getElementById('bar-name').value = '';
 }
 
