@@ -129,6 +129,70 @@
     <div class="container" id="bar-container"></div>
   </div>
 
+<div id="character-manager">
+  <form id="character-form">
+    <input type="text" id="character-name" placeholder="Nome do personagem" required />
+    <button type="submit">Salvar Personagem</button>
+  </form>
+  <ul id="character-list"></ul>
+</div>
+
+<script>
+  const characterForm = document.getElementById("character-form");
+  const characterNameInput = document.getElementById("character-name");
+  const characterList = document.getElementById("character-list");
+
+  // Armazena personagens no localStorage
+  const saveCharacters = (characters) => {
+    localStorage.setItem("characters", JSON.stringify(characters));
+  };
+
+  // Recupera personagens do localStorage
+  const getCharacters = () => {
+    return JSON.parse(localStorage.getItem("characters")) || [];
+  };
+
+  // Atualiza a lista exibida
+  const updateCharacterList = () => {
+    characterList.innerHTML = "";
+    const characters = getCharacters();
+
+    characters.forEach((character, index) => {
+      const li = document.createElement("li");
+      li.textContent = character;
+
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "Excluir";
+      deleteButton.style.marginLeft = "10px";
+      deleteButton.onclick = () => {
+        characters.splice(index, 1);
+        saveCharacters(characters);
+        updateCharacterList();
+      };
+
+      li.appendChild(deleteButton);
+      characterList.appendChild(li);
+    });
+  };
+
+  // Lida com o envio do formulário
+  characterForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const characterName = characterNameInput.value.trim();
+    if (characterName) {
+      const characters = getCharacters();
+      characters.push(characterName);
+      saveCharacters(characters);
+      updateCharacterList();
+      characterNameInput.value = "";
+    }
+  });
+
+  // Inicializa a lista na primeira carga
+  updateCharacterList();
+</script>
+   
   <script>
     const loginSection = document.getElementById('login-section');
     const registerSection = document.getElementById('register-section');
